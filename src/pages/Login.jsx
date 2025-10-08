@@ -16,7 +16,7 @@ const Login = ({ onLogin }) => {
         setLoading(true);
         setError('');
         try {
-            const response = await axios.post('http://localhost:5000/api/users/login', { email, password });
+            const response = await axios.post('http://excel-analysis-server.onrender.com/api/users/login', { email, password });
             
             // Store auth data, including the user's name
             localStorage.setItem('authToken', response.data.token);

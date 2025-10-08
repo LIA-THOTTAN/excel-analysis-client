@@ -86,7 +86,7 @@ export default function Dashboard() {
           Authorization: `Bearer ${token}`,
         },
       };
-      await axios.post("http://localhost:5000/api/users/upload", formData, config);
+      await axios.post("http://excel-analysis-server.onrender.com/api/users/upload", formData, config);
       setMessage("File uploaded successfully!");
       setSelectedFile(null);
     } catch (error) {

@@ -22,7 +22,7 @@ const FileUpload = () => {
       formData.append("file", file);
 
       const res = await axios.post(
-        "http://localhost:5000/api/users/upload",
+        "http://excel-analysis-server.onrender.com/api/users/upload",
         formData,
         {
           headers: {
