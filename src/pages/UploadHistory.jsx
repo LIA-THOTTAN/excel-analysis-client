@@ -19,7 +19,9 @@ const UploadHistory = () => {
           return;
         }
 
-        const { data } = await axios.get("http://localhost:5000/api/users/uploads", {
+        const API = import.meta.env.VITE_API_BASE_URL;
+
+        const { data } = await axios.get(`${API}/api/users/uploads`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -38,35 +40,46 @@ const UploadHistory = () => {
 
   // Handle preview
   const handlePreview = async (id, fileName) => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const { data } = await axios.get(
-        `http://localhost:5000/api/users/uploads/preview/${id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setPreviewData(data.data);
-      setPreviewFileName(fileName);
-    } catch (err) {
-      setError("Failed to preview file");
-    }
-  };
-
-  // Handle delete
-  const handleDelete = async (id) => {
-    try {
-      const token = localStorage.getItem("authToken");
-      await axios.delete(`http://localhost:5000/api/users/uploads/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setFiles((prev) => prev.filter((file) => file._id !== id));
-      if (previewFileName && previewData && id === previewData._id) {
-        setPreviewData(null);
-        setPreviewFileName("");
+  try {
+    const token = localStorage.getItem("authToken");
+    const { data } = await axios.get(
+      `${import.meta.env.VITE_API_BASE_URL}/api/users/uploads/preview/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
-    } catch (err) {
-      setError("Failed to delete file");
+    );
+    setPreviewData(data.data);
+    setPreviewFileName(fileName);
+  } catch (err) {
+    setError("Failed to preview file");
+  }
+};
+
+// Handle delete
+const handleDelete = async (id) => {
+  try {
+    const token = localStorage.getItem("authToken");
+    await axios.delete(
+      `${import.meta.env.VITE_API_BASE_URL}/api/users/uploads/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    setFiles((prev) => prev.filter((file) => file._id !== id));
+
+    if (previewFileName && previewData && id === previewData._id) {
+      setPreviewData(null);
+      setPreviewFileName("");
     }
-  };
+  } catch (err) {
+    setError("Failed to delete file");
+  }
+};
 
   if (loading) return <p className="text-gray-400">Loading history...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
@@ -108,7 +121,8 @@ const UploadHistory = () => {
                       Delete
                     </button>
                     <a
-                      href={`http://localhost:5000/${file.filePath}`}
+                      href={`${import.meta.env.VITE_API_BASE_URL}/${file.filePath}`}
+
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-green-500 hover:text-green-400"

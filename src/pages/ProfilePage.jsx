@@ -17,20 +17,26 @@ const ProfilePage = ({ authData, onLogout }) => {
                 return;
             }
 
-            try {
-                const config = {
-                    headers: {
-                        'Authorization': `Bearer ${authData.token}`,
-                    },
-                };
-                const response = await axios.get('http://localhost:5000/api/users/profile', config);
-                setProfile(response.data);
-            } catch (err) {
-                console.error('Failed to fetch profile:', err.response?.data?.message || err.message);
-                setError('Failed to load profile data.');
-            } finally {
-                setLoading(false);
-            }
+           try {
+  const config = {
+    headers: {
+      Authorization: `Bearer ${authData.token}`,
+    },
+  };
+
+  const response = await axios.get(
+    `${import.meta.env.VITE_API_BASE_URL}/api/users/profile`,
+    config
+  );
+
+  setProfile(response.data);
+} catch (err) {
+  console.error('Failed to fetch profile:', err.response?.data?.message || err.message);
+  setError('Failed to load profile data.');
+} finally {
+  setLoading(false);
+}
+
         };
 
         fetchProfile();

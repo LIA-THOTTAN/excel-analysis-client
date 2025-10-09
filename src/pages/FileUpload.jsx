@@ -21,16 +21,17 @@ const FileUpload = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await axios.post(
-        "http://excel-analysis-server.onrender.com/api/users/upload",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  const res = await axios.post(`${API_BASE_URL}/api/users/upload`,formData,
+  {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+       Authorization: `Bearer ${token}`,
+    },
+  }
+);
+
 
       setMessage(`✅ ${res.data.message} (${res.data.file.fileName})`);
       setFile(null);

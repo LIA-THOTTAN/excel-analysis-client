@@ -1,4 +1,4 @@
-// AdminPage.jsx
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -30,41 +30,46 @@ export function AdminPage({ authData, onLogout }) {
     };
 
     const fetchDashboardData = async () => {
-        setLoading(true);
-        try {
-            const headers = getAuthHeaders();
-            const usersResponse = await axios.get('http://localhost:5000/api/users/all', headers);
-            const allUsers = usersResponse.data;
+  setLoading(true);
+  try {
+    const headers = getAuthHeaders();  // should return { Authorization: 'Bearer token' }
 
-            const regularUsersList = allUsers.filter(
-                (user) => user.role === 'user' && user.adminRequestStatus !== 'rejected'
-            );
+const usersResponse = await axios.get(
+  `${import.meta.env.VITE_API_BASE_URL}/api/users/all`,
+  { headers }   
+);
 
-            const adminsList = allUsers.filter(
-                (user) => user.role === 'admin' && user.adminRequestStatus === 'accepted'
-            );
+    const allUsers = usersResponse.data;
 
-            const rejectedUsersList = allUsers.filter(
-                (user) => user.role === 'user' && user.adminRequestStatus === 'rejected'
-            );
+    const regularUsersList = allUsers.filter(
+      (user) => user.role === 'user' && user.adminRequestStatus !== 'rejected'
+    );
 
-            setRegularUsers(regularUsersList);
-            setRejectedUsers(rejectedUsersList);
-            setStats({
-                totalUsers: regularUsersList.length,
-                admins: adminsList.length,
-                rejected: rejectedUsersList.length,
-            });
-        } catch (err) {
-            console.error('Failed to fetch dashboard data:', err);
-            toast.error(err.response?.data?.message || 'Failed to fetch data');
-            if (err.response?.status === 403) {
-                navigate('/dashboard');
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
+    const adminsList = allUsers.filter(
+      (user) => user.role === 'admin' && user.adminRequestStatus === 'accepted'
+    );
+
+    const rejectedUsersList = allUsers.filter(
+      (user) => user.role === 'user' && user.adminRequestStatus === 'rejected'
+    );
+
+    setRegularUsers(regularUsersList);
+    setRejectedUsers(rejectedUsersList);
+    setStats({
+      totalUsers: regularUsersList.length,
+      admins: adminsList.length,
+      rejected: rejectedUsersList.length,
+    });
+  } catch (err) {
+    console.error('Failed to fetch dashboard data:', err);
+    toast.error(err.response?.data?.message || 'Failed to fetch data');
+    if (err.response?.status === 403) {
+      navigate('/dashboard');
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
     useEffect(() => {
         if (authData?.role !== 'admin' && authData?.role !== 'superadmin') {
@@ -77,59 +82,71 @@ export function AdminPage({ authData, onLogout }) {
 
     // Reject user -> move to rejected list
     const handleRejectUser = async (userToReject) => {
-        if (window.confirm('Are you sure you want to reject this user?')) {
-            try {
-                const headers = getAuthHeaders();
-                await axios.put(
-                    `http://localhost:5000/api/users/reject/${userToReject._id}`,
-                    {},
-                    headers
-                );
-                toast.success('User rejected successfully!');
-                
-                // Optimistic UI update: remove from regularUsers and add to rejectedUsers
-                setRegularUsers(prevUsers => prevUsers.filter(user => user._id !== userToReject._id));
-                setRejectedUsers(prevUsers => [...prevUsers, { ...userToReject, adminRequestStatus: 'rejected' }]);
-                setStats(prevStats => ({
-                    ...prevStats,
-                    totalUsers: prevStats.totalUsers - 1,
-                    rejected: prevStats.rejected + 1
-                }));
-                setActiveTab('rejected');
-            } catch (err) {
-                console.error('Failed to reject user:', err);
-                toast.error(err.response?.data?.message || 'Failed to reject user.');
-            }
-        }
-    };
+  if (window.confirm('Are you sure you want to reject this user?')) {
+    try {
+      const headers = getAuthHeaders();
+      await axios.put(
+        `${import.meta.env.VITE_API_BASE_URL}/api/users/reject/${userToReject._id}`,
+        {},
+        headers
+      );
+      toast.success('User rejected successfully!');
 
-    // Unreject user -> move back to regular users
-    const handleUnrejectUser = async (userToUnreject) => {
-        if (window.confirm('Are you sure you want to unreject this user?')) {
-            try {
-                const headers = getAuthHeaders();
-                await axios.put(
-                    `http://localhost:5000/api/users/unreject/${userToUnreject._id}`,
-                    {},
-                    headers
-                );
-                toast.success('User moved back to Users!');
+      // Optimistic UI update: remove from regularUsers and add to rejectedUsers
+      setRegularUsers(prevUsers =>
+        prevUsers.filter(user => user._id !== userToReject._id)
+      );
+      setRejectedUsers(prevUsers => [
+        ...prevUsers,
+        { ...userToReject, adminRequestStatus: 'rejected' }
+      ]);
+      setStats(prevStats => ({
+        ...prevStats,
+        totalUsers: prevStats.totalUsers - 1,
+        rejected: prevStats.rejected + 1
+      }));
+      setActiveTab('rejected');
+    } catch (err) {
+      console.error('Failed to reject user:', err);
+      toast.error(err.response?.data?.message || 'Failed to reject user.');
+    }
+  }
+};
 
-                // Optimistic UI update: remove from rejectedUsers and add to regularUsers
-                setRejectedUsers(prevUsers => prevUsers.filter(user => user._id !== userToUnreject._id));
-                setRegularUsers(prevUsers => [...prevUsers, { ...userToUnreject, adminRequestStatus: null }]);
-                setStats(prevStats => ({
-                    ...prevStats,
-                    totalUsers: prevStats.totalUsers + 1,
-                    rejected: prevStats.rejected - 1
-                }));
-                setActiveTab('users');
-            } catch (err) {
-                console.error('Failed to unreject user:', err);
-                toast.error(err.response?.data?.message || 'Failed to unreject user.');
-            }
-        }
-    };
+
+// Unreject user -> move back to regular users
+const handleUnrejectUser = async (userToUnreject) => {
+  if (window.confirm('Are you sure you want to unreject this user?')) {
+    try {
+      const headers = getAuthHeaders();
+      await axios.put(
+        `${import.meta.env.VITE_API_BASE_URL}/api/users/unreject/${userToUnreject._id}`,
+        {},
+        headers
+      );
+      toast.success('User moved back to Users!');
+
+      // Optimistic UI update: remove from rejectedUsers and add to regularUsers
+      setRejectedUsers(prevUsers =>
+        prevUsers.filter(user => user._id !== userToUnreject._id)
+      );
+      setRegularUsers(prevUsers => [
+        ...prevUsers,
+        { ...userToUnreject, adminRequestStatus: null }
+      ]);
+      setStats(prevStats => ({
+        ...prevStats,
+        totalUsers: prevStats.totalUsers + 1,
+        rejected: prevStats.rejected - 1
+      }));
+      setActiveTab('users');
+    } catch (err) {
+      console.error('Failed to unreject user:', err);
+      toast.error(err.response?.data?.message || 'Failed to unreject user.');
+    }
+  }
+};
+
 
     const handleLogout = () => {
         onLogout();

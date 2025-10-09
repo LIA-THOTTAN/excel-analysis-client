@@ -12,33 +12,37 @@ const Login = ({ onLogin }) => {
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
-        try {
-            const response = await axios.post('http://excel-analysis-server.onrender.com/api/users/login', { email, password });
-            
-            // Store auth data, including the user's name
-            localStorage.setItem('authToken', response.data.token);
-            localStorage.setItem('userRole', response.data.role);
-            localStorage.setItem('userEmail', response.data.email);
-            localStorage.setItem('userName', response.data.name); // Save the name to localStorage
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-            // Pass the name to the onLogin function
-            onLogin(response.data.token, response.data.role, response.data.email, response.data.name);
+    try {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+        const response = await axios.post(`${API_BASE_URL}/api/users/login`, { email, password });
 
-            if (response.data.role === 'user') {
-                navigate('/dashboard');
-            } else if (response.data.role === 'admin') {
-                navigate('/admin');
-            } else if (response.data.role === 'superadmin') {
-                navigate('/superadmin');
-            }
-        } catch (err) {
-            setLoading(false);
-            setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+        const { token, role, email: userEmail, name } = response.data;
+
+        localStorage.setItem('authToken', token);
+        localStorage.setItem('userRole', role);
+        localStorage.setItem('userEmail', userEmail);
+        localStorage.setItem('userName', name);
+
+        onLogin(token, role, userEmail, name);
+
+        if (role === 'user') {
+            navigate('/dashboard');
+        } else if (role === 'admin') {
+            navigate('/admin');
+        } else if (role === 'superadmin') {
+            navigate('/superadmin');
         }
-    };
+    } catch (err) {
+        setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+    } finally {
+        setLoading(false);
+    }
+};
+
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-[#0d1117] text-[#c9d1d9]">
