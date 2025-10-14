@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -27,7 +26,7 @@ const SuperAdminDashboard = () => {
     const getAuthHeaders = () => {
         const token = localStorage.getItem('authToken');
         return {
-            headers: { Authorization: `Bearer ${token} `},
+            headers: { Authorization: `Bearer ${token}` },
         };
     };
 
@@ -140,7 +139,7 @@ const SuperAdminDashboard = () => {
             }
         }
     };
-    
+
     const handleGrantUser = async (userId) => {
         try {
             const config = getAuthHeaders();
@@ -195,7 +194,7 @@ const SuperAdminDashboard = () => {
                         <tr>
                             <th style={styles.th}>Username</th>
                             <th style={styles.th}>Email</th>
-                            <th style={styles.th}>Role</th> {/* Removed the conditional rendering */}
+                            <th style={styles.th}>Role</th>
                             {(activeTab === 'allAdmins' || activeTab === 'rejected' || activeTab === 'allUsers') && (
                                 <>
                                     <th style={styles.th}>Created On</th>
@@ -210,7 +209,7 @@ const SuperAdminDashboard = () => {
                             <tr key={user._id} style={styles.tr}>
                                 <td style={styles.td}>{user.name}</td>
                                 <td style={styles.td}>{user.email}</td>
-                                <td style={styles.td}>{user.role}</td> {/* Always render the role */}
+                                <td style={styles.td}>{user.role}</td>
                                 {(activeTab === 'allAdmins' || activeTab === 'rejected' || activeTab === 'allUsers') && (
                                     <>
                                         <td style={styles.td}>{formatDate(user.createdAt)}</td>

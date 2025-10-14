@@ -6,7 +6,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import {AdminPage} from './pages/AdminPage';
+import AdminPage from './pages/AdminPage';
 import SuperAdminPage from './pages/SuperAdminPage';
 import UserPage from './pages/UserPage';
 import ProfilePage from './pages/ProfilePage';
