@@ -2,6 +2,7 @@
 import React, { useState, useRef } from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
+import axios from "../axiosConfig";
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie,
   XAxis, YAxis, Tooltip, Legend, CartesianGrid,
