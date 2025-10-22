@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import Dashboard from './Dashboard';
 import UploadHistory from './UploadHistory';
 import { toast } from 'react-toastify';
+import axios from "../axiosConfig";
 
 export default function AdminPage({ authData, onLogout }) {
   const [stats, setStats] = useState({
