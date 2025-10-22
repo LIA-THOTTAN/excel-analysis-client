@@ -18,7 +18,7 @@ const SuperAdminDashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("authtoken");
         if (!token) {
           console.error("❌ No token found. Please log in again.");
           return;
