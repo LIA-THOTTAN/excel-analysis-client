@@ -1,5 +1,6 @@
+// src/pages/SuperAdminPage.jsx
 import React, { useState, useEffect, useRef } from "react";
-import axios from "../axiosConfig"; // ✅ use configured axios instance
+import axios from "../axiosConfig"; // ✅ use the configured axios instance
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Users, UserPlus, Clock, UserCheck } from "lucide-react";
@@ -21,7 +22,6 @@ const SuperAdminDashboard = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
-  const [activePage, setActivePage] = useState("dashboard");
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem("authToken");
@@ -41,7 +41,6 @@ const SuperAdminDashboard = () => {
         return;
       }
 
-      // ✅ Correct API URL now (thanks to axiosConfig baseURL)
       const profileRes = await axios.get("/api/users/profile", config);
       setUserEmail(profileRes.data.email);
 
@@ -215,51 +214,21 @@ const SuperAdminDashboard = () => {
                 <td style={styles.actionTd}>
                   {activeTab === "pending" && (
                     <>
-                      <button
-                        onClick={() => handleApprove(user._id)}
-                        style={styles.approveButton}
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleReject(user._id)}
-                        style={styles.rejectButton}
-                      >
-                        Reject
-                      </button>
+                      <button onClick={() => handleApprove(user._id)} style={styles.approveButton}>Approve</button>
+                      <button onClick={() => handleReject(user._id)} style={styles.rejectButton}>Reject</button>
                     </>
                   )}
                   {activeTab === "allAdmins" && user.role !== "superadmin" && (
-                    <button
-                      onClick={() => handleBlock(user._id)}
-                      style={styles.rejectButton}
-                    >
-                      Block
-                    </button>
+                    <button onClick={() => handleBlock(user._id)} style={styles.rejectButton}>Block</button>
                   )}
                   {activeTab === "rejected" && (
                     <>
-                      <button
-                        onClick={() => handleGrantAdmin(user._id)}
-                        style={styles.approveButton}
-                      >
-                        Grant Admin
-                      </button>
-                      <button
-                        onClick={() => handleGrantUser(user._id)}
-                        style={styles.unblockButton}
-                      >
-                        Grant User
-                      </button>
+                      <button onClick={() => handleGrantAdmin(user._id)} style={styles.approveButton}>Grant Admin</button>
+                      <button onClick={() => handleGrantUser(user._id)} style={styles.unblockButton}>Grant User</button>
                     </>
                   )}
                   {activeTab === "allUsers" && (
-                    <button
-                      onClick={() => handleBlock(user._id)}
-                      style={styles.rejectButton}
-                    >
-                      Block
-                    </button>
+                    <button onClick={() => handleBlock(user._id)} style={styles.rejectButton}>Block</button>
                   )}
                 </td>
               </tr>
@@ -272,22 +241,15 @@ const SuperAdminDashboard = () => {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case "pending":
-        return renderUserTable(pendingAdmins);
-      case "allAdmins":
-        return renderUserTable(allAdmins);
-      case "rejected":
-        return renderUserTable(rejectedAdmins);
-      case "allUsers":
-        return renderUserTable(regularUsers);
-      default:
-        return null;
+      case "pending": return renderUserTable(pendingAdmins);
+      case "allAdmins": return renderUserTable(allAdmins);
+      case "rejected": return renderUserTable(rejectedAdmins);
+      case "allUsers": return renderUserTable(regularUsers);
+      default: return null;
     }
   };
 
-  const getFirstLetter = (email) => {
-    return email ? email.charAt(0).toUpperCase() : "";
-  };
+  const getFirstLetter = (email) => (email ? email.charAt(0).toUpperCase() : "");
 
   return (
     <div style={styles.dashboardLayout}>
@@ -295,24 +257,14 @@ const SuperAdminDashboard = () => {
         <nav style={styles.topBar}>
           <div style={styles.topBarTitle}>Super Admin Dashboard</div>
           <div style={styles.dropdownContainer} ref={dropdownRef}>
-            <div
-              style={styles.userInfo}
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            >
+            <div style={styles.userInfo} onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
               <div style={styles.avatar}>{getFirstLetter(userEmail)}</div>
               <span style={styles.userEmail}>{userEmail}</span>
             </div>
             {isDropdownOpen && (
               <div style={styles.dropdownMenu}>
-                <button onClick={handleProfileClick} style={styles.dropdownItem}>
-                  Profile
-                </button>
-                <button
-                  onClick={handleLogout}
-                  style={{ ...styles.dropdownItem, color: "#dc3545" }}
-                >
-                  Logout
-                </button>
+                <button onClick={handleProfileClick} style={styles.dropdownItem}>Profile</button>
+                <button onClick={handleLogout} style={{ ...styles.dropdownItem, color: "#dc3545" }}>Logout</button>
               </div>
             )}
           </div>
@@ -341,48 +293,14 @@ const SuperAdminDashboard = () => {
               <span style={styles.statValue}>{stats.pending}</span>
             </div>
           </div>
+
           <div style={styles.tabsContainer}>
-            <button
-              style={
-                activeTab === "pending"
-                  ? styles.tabButtonActive
-                  : styles.tabButton
-              }
-              onClick={() => setActiveTab("pending")}
-            >
-              Pending Requests ({pendingAdmins.length})
-            </button>
-            <button
-              style={
-                activeTab === "allAdmins"
-                  ? styles.tabButtonActive
-                  : styles.tabButton
-              }
-              onClick={() => setActiveTab("allAdmins")}
-            >
-              Admitted Admins ({allAdmins.length})
-            </button>
-            <button
-              style={
-                activeTab === "rejected"
-                  ? styles.tabButtonActive
-                  : styles.tabButton
-              }
-              onClick={() => setActiveTab("rejected")}
-            >
-              Rejected ({rejectedAdmins.length})
-            </button>
-            <button
-              style={
-                activeTab === "allUsers"
-                  ? styles.tabButtonActive
-                  : styles.tabButton
-              }
-              onClick={() => setActiveTab("allUsers")}
-            >
-              Regular Users ({regularUsers.length})
-            </button>
+            <button style={activeTab === "pending" ? styles.tabButtonActive : styles.tabButton} onClick={() => setActiveTab("pending")}>Pending ({pendingAdmins.length})</button>
+            <button style={activeTab === "allAdmins" ? styles.tabButtonActive : styles.tabButton} onClick={() => setActiveTab("allAdmins")}>Admins ({allAdmins.length})</button>
+            <button style={activeTab === "rejected" ? styles.tabButtonActive : styles.tabButton} onClick={() => setActiveTab("rejected")}>Rejected ({rejectedAdmins.length})</button>
+            <button style={activeTab === "allUsers" ? styles.tabButtonActive : styles.tabButton} onClick={() => setActiveTab("allUsers")}>Users ({regularUsers.length})</button>
           </div>
+
           <div style={styles.userListContainer}>{renderTabContent()}</div>
         </div>
       </div>
@@ -390,5 +308,134 @@ const SuperAdminDashboard = () => {
   );
 };
 
-// (styles remain same as your original code)
+// ✅ Add this styles object (previously missing)
+const styles = {
+  dashboardLayout: {
+    minHeight: "100vh",
+    backgroundColor: "#0d1117",
+    color: "#c9d1d9",
+    display: "flex",
+    flexDirection: "column",
+  },
+  mainContentArea: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+  },
+  topBar: {
+    backgroundColor: "#161b22",
+    borderBottom: "1px solid #30363d",
+    padding: "1rem 2rem",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  topBarTitle: { fontSize: "1.5rem", fontWeight: "bold" },
+  dropdownContainer: { position: "relative" },
+  userInfo: { display: "flex", alignItems: "center", cursor: "pointer" },
+  avatar: {
+    backgroundColor: "#0370a7",
+    borderRadius: "50%",
+    color: "#fff",
+    width: "32px",
+    height: "32px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: "0.5rem",
+  },
+  dropdownMenu: {
+    position: "absolute",
+    top: "2.5rem",
+    right: 0,
+    backgroundColor: "#161b22",
+    border: "1px solid #30363d",
+    borderRadius: "8px",
+    overflow: "hidden",
+    zIndex: 10,
+  },
+  dropdownItem: {
+    padding: "0.5rem 1rem",
+    textAlign: "left",
+    background: "none",
+    border: "none",
+    color: "#c9d1d9",
+    width: "100%",
+    cursor: "pointer",
+  },
+  mainContent: { padding: "2rem" },
+  statsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+    gap: "1rem",
+  },
+  statCard: {
+    backgroundColor: "#161b22",
+    border: "1px solid #30363d",
+    padding: "1rem",
+    borderRadius: "8px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  statLabel: { fontSize: "1rem" },
+  statValue: { fontSize: "1.5rem", fontWeight: "bold" },
+  tabsContainer: {
+    display: "flex",
+    gap: "1rem",
+    marginTop: "2rem",
+    flexWrap: "wrap",
+  },
+  tabButton: {
+    backgroundColor: "#161b22",
+    color: "#c9d1d9",
+    padding: "0.5rem 1rem",
+    borderRadius: "6px",
+    border: "1px solid #30363d",
+    cursor: "pointer",
+  },
+  tabButtonActive: {
+    backgroundColor: "#0370a7",
+    color: "#fff",
+    padding: "0.5rem 1rem",
+    borderRadius: "6px",
+    border: "1px solid #0370a7",
+  },
+  tableContainer: { marginTop: "1rem", overflowX: "auto" },
+  table: { width: "100%", borderCollapse: "collapse" },
+  th: {
+    borderBottom: "1px solid #30363d",
+    padding: "0.75rem",
+    textAlign: "left",
+  },
+  tr: { borderBottom: "1px solid #30363d" },
+  td: { padding: "0.75rem" },
+  actionTd: { display: "flex", gap: "0.5rem" },
+  approveButton: {
+    backgroundColor: "#0370a7",
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    padding: "0.4rem 0.8rem",
+    cursor: "pointer",
+  },
+  rejectButton: {
+    backgroundColor: "#d73a49",
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    padding: "0.4rem 0.8rem",
+    cursor: "pointer",
+  },
+  unblockButton: {
+    backgroundColor: "#28a745",
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    padding: "0.4rem 0.8rem",
+    cursor: "pointer",
+  },
+  noDataText: { textAlign: "center", marginTop: "1rem", color: "#8b949e" },
+};
+
 export default SuperAdminDashboard;
