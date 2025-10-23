@@ -12,37 +12,32 @@ const Login = ({ onLogin }) => {
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+        e.preventDefault();
+        setLoading(true);
+        setError('');
 
-    try {
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-        const response = await axios.post(`${API_BASE_URL}/api/users/login`, { email, password });
+        try {
+            // ✅ Use axios instance directly (baseURL is already set)
+            const response = await axios.post("/api/users/login", { email, password });
 
-        const { token, role, email: userEmail, name } = response.data;
+            const { token, role, email: userEmail, name } = response.data;
 
-        localStorage.setItem('authToken', token);
-        localStorage.setItem('userRole', role);
-        localStorage.setItem('userEmail', userEmail);
-        localStorage.setItem('userName', name);
+            localStorage.setItem('authToken', token);
+            localStorage.setItem('userRole', role);
+            localStorage.setItem('userEmail', userEmail);
+            localStorage.setItem('userName', name);
 
-        onLogin(token, role, userEmail, name);
+            onLogin(token, role, userEmail, name);
 
-        if (role === 'user') {
-            navigate('/dashboard');
-        } else if (role === 'admin') {
-            navigate('/admin');
-        } else if (role === 'superadmin') {
-            navigate('/superadmin');
+            if (role === 'user') navigate('/dashboard');
+            else if (role === 'admin') navigate('/admin');
+            else if (role === 'superadmin') navigate('/superadmin');
+        } catch (err) {
+            setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+        } finally {
+            setLoading(false);
         }
-    } catch (err) {
-        setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
-    } finally {
-        setLoading(false);
-    }
-};
-
+    };
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-[#0d1117] text-[#c9d1d9]">

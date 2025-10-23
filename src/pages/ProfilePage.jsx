@@ -17,26 +17,22 @@ const ProfilePage = ({ authData, onLogout }) => {
                 return;
             }
 
-           try {
-  const config = {
-    headers: {
-      Authorization: `Bearer ${authData.token}`,
-    },
-  };
+            try {
+                const config = {
+                    headers: {
+                        Authorization: `Bearer ${authData.token}`,
+                    },
+                };
 
-  const response = await axios.get(
-    `${import.meta.env.VITE_API_BASE_URL}/api/users/profile`,
-    config
-  );
-
-  setProfile(response.data);
-} catch (err) {
-  console.error('Failed to fetch profile:', err.response?.data?.message || err.message);
-  setError('Failed to load profile data.');
-} finally {
-  setLoading(false);
-}
-
+                // ✅ Use axios instance directly
+                const response = await axios.get("/api/users/profile", config);
+                setProfile(response.data);
+            } catch (err) {
+                console.error('Failed to fetch profile:', err.response?.data?.message || err.message);
+                setError('Failed to load profile data.');
+            } finally {
+                setLoading(false);
+            }
         };
 
         fetchProfile();
@@ -66,12 +62,8 @@ const ProfilePage = ({ authData, onLogout }) => {
         );
     }
 
-    // Function to format date and time
     const formatDate = (dateString) => {
-        // Check if the date string is valid
-        if (!dateString || isNaN(new Date(dateString))) {
-            return 'Not available';
-        }
+        if (!dateString || isNaN(new Date(dateString))) return 'Not available';
         const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
         return new Date(dateString).toLocaleDateString(undefined, options);
     };
@@ -99,16 +91,12 @@ const ProfilePage = ({ authData, onLogout }) => {
 
                     <div className="bg-[#0d1117] border border-[#30363d] rounded-md p-4">
                         <label className="block text-sm font-medium text-[#8b949e]">Last Login</label>
-                        <p className="mt-1 text-lg font-semibold">
-                            {formatDate(profile.lastLogin)}
-                        </p>
+                        <p className="mt-1 text-lg font-semibold">{formatDate(profile.lastLogin)}</p>
                     </div>
-                    
+
                     <div className="bg-[#0d1117] border border-[#30363d] rounded-md p-4">
                         <label className="block text-sm font-medium text-[#8b949e]">Created Date</label>
-                        <p className="mt-1 text-lg font-semibold">
-                            {formatDate(profile.createdAt)}
-                        </p>
+                        <p className="mt-1 text-lg font-semibold">{formatDate(profile.createdAt)}</p>
                     </div>
                 </div>
             </div>
