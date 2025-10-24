@@ -1,134 +1,148 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import axios from "../axiosConfig";
+import { useNavigate } from "react-router-dom";
 
-export default function Register() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [requestAdmin, setRequestAdmin] = useState(false);
+const Register = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "user", // Default role
+  });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
-  // ✅ Use the correct env variable name
-  const API_BASE_URL =
-    import.meta.env.VITE_API_URL || 'https://excel-analysis-server.onrender.com';
+  // 📝 Handle input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  console.log('✅ API_BASE_URL (frontend):', API_BASE_URL);
-
-  const handleRegisterSubmit = async (e) => {
+  // 🚀 Handle form submit
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (password !== confirmPassword) {
-      alert("Passwords don't match!");
-      return;
-    }
+    setLoading(true);
+    setMessage("");
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/users/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, requestAdmin }),
-        credentials: 'include', // needed if you're using cookies/sessions
-      });
+      const response = await axios.post("/users/register", formData);
 
-      // Gracefully handle empty or invalid JSON responses
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        const errorMessage = data?.message || `Registration failed (${response.status})`;
-        throw new Error(errorMessage);
+      if (response.data) {
+        setMessage("✅ Registration successful! Redirecting to login...");
+        setTimeout(() => navigate("/login"), 2000);
       }
-
-      alert('Registration successful! Please log in to continue.');
-      if (requestAdmin) {
-        alert('Your admin request has been submitted for review.');
-      }
-
-      navigate('/login');
     } catch (error) {
-      console.error('❌ Registration error:', error);
-      alert(error.message);
+      console.error("Registration error:", error);
+      setMessage(
+        error.response?.data?.message ||
+          "❌ Registration failed. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-[#0d1117] font-sans">
-      <div className="w-full max-w-md p-8 bg-[#161b22] border border-[#30363d] rounded-xl shadow-lg">
-        <h2 className="text-3xl font-bold text-center text-[#c9d1d9] mb-6">Register</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md">
+        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
+          Create an Account
+        </h2>
 
-        <form onSubmit={handleRegisterSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-[#c9d1d9] mb-1">Name</label>
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Full Name
+            </label>
             <input
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              name="name"
               required
-              className="w-full px-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#c9d1d9] focus:outline-none focus:ring-2 focus:ring-[#58a6ff]"
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg p-2 focus:ring focus:ring-blue-300 outline-none"
+              placeholder="Enter your full name"
             />
           </div>
 
+          {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-[#c9d1d9] mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Email Address
+            </label>
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
               required
-              className="w-full px-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#c9d1d9] focus:outline-none focus:ring-2 focus:ring-[#58a6ff]"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg p-2 focus:ring focus:ring-blue-300 outline-none"
+              placeholder="Enter your email"
             />
           </div>
 
+          {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-[#c9d1d9] mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#c9d1d9] focus:outline-none focus:ring-2 focus:ring-[#58a6ff]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[#c9d1d9] mb-1">Confirm Password</label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              className="w-full px-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#c9d1d9] focus:outline-none focus:ring-2 focus:ring-[#58a6ff]"
-            />
-          </div>
-
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="requestAdmin"
-              checked={requestAdmin}
-              onChange={(e) => setRequestAdmin(e.target.checked)}
-              className="h-4 w-4 text-[#58a6ff] focus:ring-[#58a6ff] border-[#30363d] rounded"
-            />
-            <label htmlFor="requestAdmin" className="ml-2 block text-sm text-[#c9d1d9]">
-              Request admin privileges
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Password
             </label>
+            <input
+              type="password"
+              name="password"
+              required
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg p-2 focus:ring focus:ring-blue-300 outline-none"
+              placeholder="Enter your password"
+            />
           </div>
 
+          {/* Role */}
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Role
+            </label>
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg p-2 focus:ring focus:ring-blue-300 outline-none"
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+
+          {/* Submit button */}
           <button
             type="submit"
-            className="w-full bg-[#2ea043] text-white py-2 rounded-md font-semibold transition-colors hover:bg-[#238636]"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
           >
-            Register
+            {loading ? "Registering..." : "Register"}
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-[#8b949e]">
-          Already have an account?
-          <Link to="/login" className="text-[#58a6ff] ml-1 hover:underline">
+        {/* Message */}
+        {message && (
+          <p className="text-center text-sm mt-4 text-gray-700">{message}</p>
+        )}
+
+        {/* Redirect */}
+        <p className="text-sm text-center text-gray-600 mt-4">
+          Already have an account?{" "}
+          <button
+            onClick={() => navigate("/login")}
+            className="text-blue-600 hover:underline"
+          >
             Login here
-          </Link>
+          </button>
         </p>
       </div>
     </div>
   );
-}
+};
+
+export default Register;
