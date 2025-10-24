@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import { Users, UserPlus, Clock, UserCheck } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import axios from "../axiosConfig";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { Users, UserPlus, Clock, UserCheck, LayoutDashboard, Upload, History } from "lucide-react";
 
 const SuperAdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -16,39 +16,43 @@ const SuperAdminDashboard = () => {
   const [allAdmins, setAllAdmins] = useState([]);
   const [rejectedAdmins, setRejectedAdmins] = useState([]);
   const [regularUsers, setRegularUsers] = useState([]);
-  const [activeTab, setActiveTab] = useState('pending');
-  const [userEmail, setUserEmail] = useState('');
+  const [activeTab, setActiveTab] = useState("pending");
+  const [userEmail, setUserEmail] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
-  const [activePage, setActivePage] = useState('dashboard');
 
   const getAuthHeaders = () => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem("authToken");
     return { headers: { Authorization: `Bearer ${token}` } };
   };
 
   const fetchDashboardData = async () => {
     try {
       const config = getAuthHeaders();
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem("authToken");
+
       if (!token) {
-        toast.error('You are not authenticated. Please log in.');
-        navigate('/login');
+        toast.error("You are not authenticated. Please log in.");
+        navigate("/login");
         return;
       }
 
-      const profileRes = await axios.get('/api/users/profile', config);
+      const profileRes = await axios.get("/api/users/profile", config);
       setUserEmail(profileRes.data.email);
 
-      const allUsersRes = await axios.get('/api/users/all', config);
-      const allUsersList = allUsersRes.data;
+      const allUsersRes = await axios.get("/api/users/all", config);
+      const allUsersList = allUsersRes.data || [];
 
-      const superAdminsList = allUsersList.filter((u) => u.role === 'superadmin');
-      const adminsList = allUsersList.filter((u) => u.role === 'admin' && u.adminRequestStatus === 'accepted');
-      const pendingAdminsList = allUsersList.filter((u) => u.adminRequestStatus === 'pending');
-      const rejectedAdminsList = allUsersList.filter((u) => u.adminRequestStatus === 'rejected');
-      const regularUsersList = allUsersList.filter((u) => u.role === 'user' && u.adminRequestStatus === null);
+      const superAdminsList = allUsersList.filter((u) => u.role === "superadmin");
+      const adminsList = allUsersList.filter(
+        (u) => u.role === "admin" && u.adminRequestStatus === "accepted"
+      );
+      const pendingAdminsList = allUsersList.filter((u) => u.adminRequestStatus === "pending");
+      const rejectedAdminsList = allUsersList.filter((u) => u.adminRequestStatus === "rejected");
+      const regularUsersList = allUsersList.filter(
+        (u) => u.role === "user" && (!u.adminRequestStatus || u.adminRequestStatus === null)
+      );
 
       setStats({
         users: regularUsersList.length,
@@ -63,20 +67,20 @@ const SuperAdminDashboard = () => {
       setRejectedAdmins(rejectedAdminsList);
       setRegularUsers(regularUsersList);
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error("Error fetching dashboard data:", error);
       if (error.response?.status === 401 || error.response?.status === 403) {
-        toast.error('Session expired. Please log in again.');
-        localStorage.removeItem('authToken');
-        navigate('/login');
+        toast.error("Session expired. Please log in again.");
+        localStorage.removeItem("authToken");
+        navigate("/login");
       } else {
-        toast.error('Failed to fetch dashboard data.');
+        toast.error("Failed to fetch dashboard data.");
       }
     }
   };
 
   useEffect(() => {
     fetchDashboardData();
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -84,18 +88,18 @@ const SuperAdminDashboard = () => {
         setIsDropdownOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleApprove = async (id) => {
     try {
       const config = getAuthHeaders();
       await axios.put(`/api/users/approve/${id}`, {}, config);
-      toast.success('Admin approved successfully!');
+      toast.success("Admin approved successfully!");
       fetchDashboardData();
     } catch {
-      toast.error('Failed to approve admin.');
+      toast.error("Failed to approve admin.");
     }
   };
 
@@ -103,96 +107,69 @@ const SuperAdminDashboard = () => {
     try {
       const config = getAuthHeaders();
       await axios.put(`/api/users/reject/${id}`, {}, config);
-      toast.success('Admin request rejected!');
+      toast.success("Admin rejected!");
       fetchDashboardData();
-      setActiveTab('rejected');
     } catch {
-      toast.error('Failed to reject admin.');
-    }
-  };
-
-  const handleBlock = async (id) => {
-    try {
-      const config = getAuthHeaders();
-      await axios.put(`/api/users/block/${id}`, {}, config);
-      toast.success('User blocked successfully!');
-      fetchDashboardData();
-      setActiveTab('rejected');
-    } catch {
-      toast.error('Failed to block user.');
-    }
-  };
-
-  const handleGrantUser = async (id) => {
-    try {
-      const config = getAuthHeaders();
-      await axios.put(`/api/users/grant-user/${id}`, {}, config);
-      toast.success('User role restored.');
-      fetchDashboardData();
-      setActiveTab('allUsers');
-    } catch {
-      toast.error('Failed to grant user role.');
-    }
-  };
-
-  const handleGrantAdmin = async (id) => {
-    try {
-      const config = getAuthHeaders();
-      await axios.put(`/api/users/grant-admin/${id}`, {}, config);
-      toast.success('Admin role granted successfully!');
-      fetchDashboardData();
-      setActiveTab('allAdmins');
-    } catch {
-      toast.error('Failed to grant admin role.');
+      toast.error("Failed to reject admin.");
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    navigate('/login');
-    toast.success('Logged out successfully.');
+    localStorage.removeItem("authToken");
+    toast.success("Logged out successfully!");
+    navigate("/login");
   };
 
-  const handleProfileClick = () => navigate('/profile');
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleString();
+  };
 
-  const formatDate = (d) => (d ? new Date(d).toLocaleString() : 'N/A');
+  const renderUserTable = (users) => {
+    if (!users.length)
+      return <p className="text-center text-gray-400 mt-4">No records found.</p>;
 
-  const renderUserTable = (list) => (
-    list?.length ? (
-      <div style={styles.tableContainer}>
-        <table style={styles.table}>
+    return (
+      <div className="overflow-x-auto mt-4">
+        <table className="min-w-full bg-[#161b22] border border-[#30363d] rounded-lg">
           <thead>
-            <tr>
-              <th style={styles.th}>Username</th>
-              <th style={styles.th}>Email</th>
-              <th style={styles.th}>Role</th>
-              <th style={styles.th}>Created On</th>
-              <th style={styles.th}>Last Login</th>
-              <th style={styles.th}>Actions</th>
+            <tr className="border-b border-[#30363d] text-gray-300">
+              <th className="p-3 text-left">Name</th>
+              <th className="p-3 text-left">Email</th>
+              <th className="p-3 text-left">Role</th>
+              <th className="p-3 text-left">Created</th>
+              <th className="p-3 text-left">Last Login</th>
+              <th className="p-3 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {list.map((user) => (
-              <tr key={user._id} style={styles.tr}>
-                <td style={styles.td}>{user.name}</td>
-                <td style={styles.td}>{user.email}</td>
-                <td style={styles.td}>{user.role}</td>
-                <td style={styles.td}>{formatDate(user.createdAt)}</td>
-                <td style={styles.td}>{formatDate(user.lastLogin)}</td>
-                <td style={styles.actionTd}>
-                  {activeTab === 'pending' && (
+            {users.map((user) => (
+              <tr key={user._id} className="border-b border-[#30363d] hover:bg-[#0d1117]">
+                <td className="p-3">{user.name}</td>
+                <td className="p-3">{user.email}</td>
+                <td className="p-3">
+                  <span className="bg-gray-700 text-white px-2 py-1 rounded text-xs">
+                    {user.role}
+                  </span>
+                </td>
+                <td className="p-3">{formatDate(user.createdAt)}</td>
+                <td className="p-3">{formatDate(user.lastLogin)}</td>
+                <td className="p-3 flex gap-2">
+                  {activeTab === "pending" && (
                     <>
-                      <button onClick={() => handleApprove(user._id)} style={styles.approveButton}>Approve</button>
-                      <button onClick={() => handleReject(user._id)} style={styles.rejectButton}>Reject</button>
-                    </>
-                  )}
-                  {activeTab === 'allAdmins' && user.role !== 'superadmin' && (
-                    <button onClick={() => handleBlock(user._id)} style={styles.rejectButton}>Block</button>
-                  )}
-                  {activeTab === 'rejected' && (
-                    <>
-                      <button onClick={() => handleGrantAdmin(user._id)} style={styles.approveButton}>Grant Admin</button>
-                      <button onClick={() => handleGrantUser(user._id)} style={styles.unblockButton}>Grant User</button>
+                      <button
+                        onClick={() => handleApprove(user._id)}
+                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleReject(user._id)}
+                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+                      >
+                        Reject
+                      </button>
                     </>
                   )}
                 </td>
@@ -201,205 +178,153 @@ const SuperAdminDashboard = () => {
           </tbody>
         </table>
       </div>
-    ) : (
-      <p style={styles.noDataText}>No data to display.</p>
-    )
-  );
+    );
+  };
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'pending': return renderUserTable(pendingAdmins);
-      case 'allAdmins': return renderUserTable(allAdmins);
-      case 'rejected': return renderUserTable(rejectedAdmins);
-      case 'allUsers': return renderUserTable(regularUsers);
-      default: return null;
+      case "pending":
+        return renderUserTable(pendingAdmins);
+      case "allAdmins":
+        return renderUserTable(allAdmins);
+      case "rejected":
+        return renderUserTable(rejectedAdmins);
+      case "allUsers":
+        return renderUserTable(regularUsers);
+      default:
+        return null;
     }
   };
 
-  const getFirstLetter = (email) => email?.charAt(0)?.toUpperCase() || '';
-
   return (
-    <div style={styles.dashboardLayout}>
-      <div style={styles.mainContentArea}>
-        <nav style={styles.topBar}>
-          <div style={styles.topBarTitle}>Super Admin Dashboard</div>
-          <div style={styles.dropdownContainer} ref={dropdownRef}>
-            <div style={styles.userInfo} onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
-              <div style={styles.avatar}>{getFirstLetter(userEmail)}</div>
-              <span style={styles.userEmail}>{userEmail}</span>
-            </div>
-            {isDropdownOpen && (
-              <div style={styles.dropdownMenu}>
-                <button onClick={handleProfileClick} style={styles.dropdownItem}>Profile</button>
-                <button onClick={handleLogout} style={{ ...styles.dropdownItem, color: '#ff5555' }}>Logout</button>
-              </div>
-            )}
-          </div>
+    <div className="flex min-h-screen bg-[#0d1117] text-gray-200">
+     
+      <aside className="w-64 bg-[#161b22] border-r border-[#30363d] p-6 flex flex-col">
+        <h2 className="text-xl font-bold mb-6 text-blue-400">Super Admin Panel</h2>
+        <nav className="flex flex-col gap-2">
+          <button
+            onClick={() => setActiveTab("pending")}
+            className={`flex items-center gap-2 p-3 rounded ${
+              activeTab === "pending"
+                ? "bg-blue-600 text-white"
+                : "hover:bg-[#0d1117] text-gray-300"
+            }`}
+          >
+            <LayoutDashboard size={18} /> Dashboard
+          </button>
+          <button
+            onClick={() => setActiveTab("allAdmins")}
+            className={`flex items-center gap-2 p-3 rounded ${
+              activeTab === "allAdmins"
+                ? "bg-blue-600 text-white"
+                : "hover:bg-[#0d1117] text-gray-300"
+            }`}
+          >
+            <UserCheck size={18} /> Admins
+          </button>
+          <button
+            onClick={() => setActiveTab("rejected")}
+            className={`flex items-center gap-2 p-3 rounded ${
+              activeTab === "rejected"
+                ? "bg-blue-600 text-white"
+                : "hover:bg-[#0d1117] text-gray-300"
+            }`}
+          >
+            <Clock size={18} /> Rejected
+          </button>
+          <button
+            onClick={() => setActiveTab("allUsers")}
+            className={`flex items-center gap-2 p-3 rounded ${
+              activeTab === "allUsers"
+                ? "bg-blue-600 text-white"
+                : "hover:bg-[#0d1117] text-gray-300"
+            }`}
+          >
+            <Users size={18} /> Users
+          </button>
         </nav>
-
-        <div style={styles.mainContent}>
-          <div style={styles.statsGrid}>
-            <div style={styles.statCard}><Users size={32} color="#00e676" /><span style={styles.statLabel}>Users</span><span style={styles.statValue}>{stats.users}</span></div>
-            <div style={styles.statCard}><UserCheck size={32} color="#00bcd4" /><span style={styles.statLabel}>Super Admins</span><span style={styles.statValue}>{stats.superAdmins}</span></div>
-            <div style={styles.statCard}><UserPlus size={32} color="#ffb300" /><span style={styles.statLabel}>Admins</span><span style={styles.statValue}>{stats.admins}</span></div>
-            <div style={styles.statCard}><Clock size={32} color="#ff7043" /><span style={styles.statLabel}>Pending</span><span style={styles.statValue}>{stats.pending}</span></div>
-          </div>
-
-          <div style={styles.tabsContainer}>
-            {['pending', 'allAdmins', 'rejected', 'allUsers'].map((tab) => (
-              <button
-                key={tab}
-                style={activeTab === tab ? styles.tabButtonActive : styles.tabButton}
-                onClick={() => setActiveTab(tab)}
-              >
-                {tab === 'pending' && `Pending (${pendingAdmins.length})`}
-                {tab === 'allAdmins' && `Admins (${allAdmins.length})`}
-                {tab === 'rejected' && `Rejected (${rejectedAdmins.length})`}
-                {tab === 'allUsers' && `Users (${regularUsers.length})`}
-              </button>
-            ))}
-          </div>
-
-          <div style={styles.userListContainer}>{renderTabContent()}</div>
+        <div className="mt-auto pt-4 border-t border-[#30363d]">
+          <button
+            onClick={handleLogout}
+            className="w-full bg-red-600 hover:bg-red-700 py-2 rounded text-white mt-2"
+          >
+            Logout
+          </button>
         </div>
-      </div>
+      </aside>
+
+     
+      <main className="flex-1 p-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Super Admin Dashboard</h1>
+          <div className="flex items-center gap-3 bg-[#161b22] p-2 rounded-lg px-4">
+            <div className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center">
+              {userEmail.charAt(0).toUpperCase()}
+            </div>
+            <span>{userEmail}</span>
+          </div>
+        </div>
+
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4 text-center">
+            <p className="text-gray-400">Total Users</p>
+            <h2 className="text-purple-400 text-2xl font-bold">{stats.users}</h2>
+          </div>
+          <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4 text-center">
+            <p className="text-gray-400">Total Admins</p>
+            <h2 className="text-purple-400 text-2xl font-bold">{stats.admins}</h2>
+          </div>
+          <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4 text-center">
+            <p className="text-gray-400">Super Admins</p>
+            <h2 className="text-purple-400 text-2xl font-bold">{stats.superAdmins}</h2>
+          </div>
+          <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4 text-center">
+            <p className="text-gray-400">Pending</p>
+            <h2 className="text-purple-400 text-2xl font-bold">{stats.pending}</h2>
+          </div>
+        </div>
+
+        <div className="flex gap-3 mb-4">
+          <button
+            className={`px-4 py-2 rounded ${
+              activeTab === "pending" ? "bg-purple-600 text-white" : "bg-[#161b22]"
+            }`}
+            onClick={() => setActiveTab("pending")}
+          >
+            Pending ({pendingAdmins.length})
+          </button>
+          <button
+            className={`px-4 py-2 rounded ${
+              activeTab === "allAdmins" ? "bg-purple-600 text-white" : "bg-[#161b22]"
+            }`}
+            onClick={() => setActiveTab("allAdmins")}
+          >
+            Admins ({allAdmins.length})
+          </button>
+          <button
+            className={`px-4 py-2 rounded ${
+              activeTab === "rejected" ? "bg-purple-600 text-white" : "bg-[#161b22]"
+            }`}
+            onClick={() => setActiveTab("rejected")}
+          >
+            Rejected ({rejectedAdmins.length})
+          </button>
+          <button
+            className={`px-4 py-2 rounded ${
+              activeTab === "allUsers" ? "bg-purple-600 text-white" : "bg-[#161b22]"
+            }`}
+            onClick={() => setActiveTab("allUsers")}
+          >
+            Users ({regularUsers.length})
+          </button>
+        </div>
+
+        
+        {renderTabContent()}
+      </main>
     </div>
   );
-};
-
-const styles = {
-  dashboardLayout: {
-    display: 'flex',
-    minHeight: '100vh',
-    background: 'linear-gradient(135deg, #121212, #1e1e2f)',
-    color: '#e0e0e0',
-    fontFamily: 'Inter, system-ui, sans-serif',
-  },
-  mainContentArea: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  topBar: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '1rem 2rem',
-    backgroundColor: '#232334',
-    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.3)',
-  },
-  topBarTitle: {
-    fontSize: '1.5rem',
-    fontWeight: '700',
-    color: '#00e676',
-  },
-  dropdownContainer: { position: 'relative' },
-  userInfo: { display: 'flex', alignItems: 'center', cursor: 'pointer', gap: '8px' },
-  avatar: {
-    width: '36px',
-    height: '36px',
-    borderRadius: '50%',
-    backgroundColor: '#333',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    color: '#00e676',
-    fontWeight: 'bold',
-  },
-  userEmail: { fontSize: '1rem', color: '#bbb' },
-  dropdownMenu: {
-    position: 'absolute',
-    top: '110%',
-    right: 0,
-    background: '#2a2a3c',
-    borderRadius: '6px',
-    overflow: 'hidden',
-    boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-    zIndex: 100,
-  },
-  dropdownItem: {
-    width: '100%',
-    padding: '10px 16px',
-    background: 'transparent',
-    border: 'none',
-    textAlign: 'left',
-    cursor: 'pointer',
-    color: '#eee',
-    transition: 'background 0.2s',
-  },
-  mainContent: { maxWidth: '1200px', margin: '2rem auto', padding: '0 1rem' },
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-    gap: '1.5rem',
-    marginBottom: '2rem',
-  },
-  statCard: {
-    background: '#292940',
-    borderRadius: '10px',
-    padding: '1.5rem',
-    textAlign: 'center',
-    boxShadow: '0 4px 10px rgba(0,0,0,0.4)',
-    transition: 'transform 0.2s ease',
-  },
-  statCardHover: { transform: 'scale(1.02)' },
-  statLabel: { color: '#aaa', marginTop: '0.5rem', fontSize: '1rem' },
-  statValue: { color: '#00e676', fontSize: '1.8rem', fontWeight: 600 },
-  tabsContainer: { display: 'flex', gap: '0.8rem', flexWrap: 'wrap', marginBottom: '1.5rem' },
-  tabButton: {
-    background: '#303050',
-    color: '#ccc',
-    border: '1px solid #404060',
-    padding: '0.6rem 1.2rem',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
-  tabButtonActive: {
-    background: '#00e676',
-    color: '#111',
-    border: '1px solid #00e676',
-    padding: '0.6rem 1.2rem',
-    borderRadius: '6px',
-    fontWeight: 600,
-  },
-  userListContainer: {
-    background: '#232334',
-    padding: '1.5rem',
-    borderRadius: '8px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-  },
-  tableContainer: { overflowX: 'auto' },
-  table: { width: '100%', borderCollapse: 'collapse', marginTop: '1rem' },
-  th: { padding: '0.75rem', textAlign: 'left', color: '#00e676', fontWeight: 600, borderBottom: '1px solid #333' },
-  td: { padding: '0.75rem', color: '#ddd', borderBottom: '1px solid #333' },
-  actionTd: { display: 'flex', gap: '0.5rem' },
-  approveButton: {
-    background: '#4caf50',
-    border: 'none',
-    borderRadius: '5px',
-    padding: '6px 12px',
-    color: '#fff',
-    cursor: 'pointer',
-    transition: 'background 0.2s',
-  },
-  rejectButton: {
-    background: '#f44336',
-    border: 'none',
-    borderRadius: '5px',
-    padding: '6px 12px',
-    color: '#fff',
-    cursor: 'pointer',
-  },
-  unblockButton: {
-    background: '#2196f3',
-    border: 'none',
-    borderRadius: '5px',
-    padding: '6px 12px',
-    color: '#fff',
-    cursor: 'pointer',
-  },
-  noDataText: { textAlign: 'center', padding: '1.5rem', color: '#888', fontStyle: 'italic' },
 };
 
 export default SuperAdminDashboard;
