@@ -8,7 +8,6 @@ const UploadHistory = () => {
   const [previewData, setPreviewData] = useState(null);
   const [previewFileName, setPreviewFileName] = useState("");
 
-  
   useEffect(() => {
     const fetchHistory = async () => {
       try {
@@ -38,48 +37,47 @@ const UploadHistory = () => {
     fetchHistory();
   }, []);
 
- 
   const handlePreview = async (id, fileName) => {
-  try {
-    const token = localStorage.getItem("authToken");
-    const { data } = await axios.get(
-      `${import.meta.env.VITE_API_BASE_URL}/api/users/uploads/preview/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    setPreviewData(data.data);
-    setPreviewFileName(fileName);
-  } catch (err) {
-    setError("Failed to preview file");
-  }
-};
+    try {
+      const token = localStorage.getItem("authToken");
+      const API = import.meta.env.VITE_API_BASE_URL;
 
-
-const handleDelete = async (id) => {
-  try {
-    const token = localStorage.getItem("authToken");
-    await axios.delete(
-      `${import.meta.env.VITE_API_BASE_URL}/api/users/uploads/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    setFiles((prev) => prev.filter((file) => file._id !== id));
-
-    if (previewFileName && previewData && id === previewData._id) {
-      setPreviewData(null);
-      setPreviewFileName("");
+      const { data } = await axios.get(
+        `${API}/api/users/uploads/preview/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setPreviewData(data.data);
+      setPreviewFileName(fileName);
+    } catch (err) {
+      setError("Failed to preview file");
     }
-  } catch (err) {
-    setError("Failed to delete file");
-  }
-};
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const API = import.meta.env.VITE_API_BASE_URL;
+
+      await axios.delete(`${API}/api/users/uploads/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setFiles((prev) => prev.filter((file) => file._id !== id));
+
+      if (previewFileName && previewData && id === previewData._id) {
+        setPreviewData(null);
+        setPreviewFileName("");
+      }
+    } catch (err) {
+      setError("Failed to delete file");
+    }
+  };
 
   if (loading) return <p className="text-gray-400">Loading history...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
@@ -95,15 +93,23 @@ const handleDelete = async (id) => {
           <table className="min-w-full divide-y divide-[#21262d]">
             <thead className="bg-[#161b22]">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[#8b949e] uppercase">File Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[#8b949e] uppercase">Uploaded At</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-[#8b949e] uppercase">Action</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-[#8b949e] uppercase">
+                  File Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-[#8b949e] uppercase">
+                  Uploaded At
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-[#8b949e] uppercase">
+                  Action
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#21262d]">
               {files.map((file) => (
                 <tr key={file._id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{file.fileName}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    {file.fileName}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     {new Date(file.createdAt).toLocaleString()}
                   </td>
@@ -122,7 +128,6 @@ const handleDelete = async (id) => {
                     </button>
                     <a
                       href={`${import.meta.env.VITE_API_BASE_URL}/${file.filePath}`}
-
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-green-500 hover:text-green-400"
@@ -140,7 +145,9 @@ const handleDelete = async (id) => {
       {previewData && (
         <div className="mt-6 p-4 bg-[#161b22] rounded-xl shadow-md">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-white">Preview: {previewFileName}</h3>
+            <h3 className="text-lg font-semibold text-white">
+              Preview: {previewFileName}
+            </h3>
             <button
               onClick={() => {
                 setPreviewData(null);
@@ -169,7 +176,10 @@ const handleDelete = async (id) => {
                 {previewData.map((row, idx) => (
                   <tr key={idx}>
                     {Object.values(row).map((val, i) => (
-                      <td key={i} className="px-4 py-2 whitespace-nowrap text-sm">
+                      <td
+                        key={i}
+                        className="px-4 py-2 whitespace-nowrap text-sm"
+                      >
                         {val !== undefined ? val.toString() : ""}
                       </td>
                     ))}
