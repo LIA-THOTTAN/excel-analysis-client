@@ -5,7 +5,7 @@ import axios from "../axiosConfig";
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie,
   XAxis, YAxis, Tooltip, Legend, CartesianGrid,
-  ResponsiveContainer, Cell, ScatterChart, Scatter,
+  ResponsiveContainer, Cell, ScatterChart, Scatter, LabelList,
 } from "recharts";
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
@@ -85,11 +85,11 @@ export default function Dashboard() {
       const config = {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, // ✅ FIXED template literal
         },
       };
 
-      await axios.post(`${API_BASE_URL}/api/users/upload`, formData, config);
+      await axios.post(`${API_BASE_URL}/users/upload`, formData, config);
 
       setMessage("File uploaded successfully!");
       setSelectedFile(null);
@@ -146,7 +146,7 @@ export default function Dashboard() {
   // 🖼 Export as PNG
   const handleSavePng = () => {
     if (!chartRef.current) return;
-    toPng(chartRef.current).then((dataUrl) => {
+    toPng(chartRef.current, { backgroundColor: "#ffffff" }).then((dataUrl) => {
       const link = document.createElement("a");
       link.download = "chart.png";
       link.href = dataUrl;
@@ -157,7 +157,7 @@ export default function Dashboard() {
   // 📄 Export as PDF
   const handleSavePdf = () => {
     if (!chartRef.current) return;
-    toPng(chartRef.current).then((dataUrl) => {
+    toPng(chartRef.current, { backgroundColor: "#ffffff" }).then((dataUrl) => {
       const pdf = new jsPDF("landscape");
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight() * 0.8;
@@ -282,7 +282,9 @@ export default function Dashboard() {
                     dataKey={yAxis}
                     stroke={COLORS[0]}
                     strokeWidth={2}
-                  />
+                  >
+                    <LabelList dataKey={yAxis} position="top" fill="#fff" fontSize={12} />
+                  </Line>
                 </LineChart>
               ) : chartType === "Bar" ? (
                 <BarChart data={chartData}>
@@ -291,9 +293,11 @@ export default function Dashboard() {
                   <YAxis stroke="#c9d1d9" />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey={yAxis} fill={COLORS[1]} barSize={30} />
+                  <Bar dataKey={yAxis} fill={COLORS[1]} barSize={30}>
+                    <LabelList dataKey={yAxis} position="top" fill="#fff" fontSize={12} />
+                  </Bar>
                 </BarChart>
-              ) : chartType === "Pie" ? (
+              ) : chartType === "Pie" || chartType === "Donut" ? (
                 <PieChart>
                   <Pie
                     data={chartData}
@@ -301,25 +305,9 @@ export default function Dashboard() {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
+                    innerRadius={chartType === "Donut" ? 50 : 0}
                     outerRadius={90}
-                  >
-                    {chartData.map((entry, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              ) : chartType === "Donut" ? (
-                <PieChart>
-                  <Pie
-                    data={chartData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={90}
+                    label
                   >
                     {chartData.map((entry, i) => (
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
@@ -335,7 +323,9 @@ export default function Dashboard() {
                   <YAxis dataKey={yAxis} stroke="#c9d1d9" />
                   <Tooltip />
                   <Legend />
-                  <Scatter data={chartData} fill={COLORS[4]} />
+                  <Scatter data={chartData} fill={COLORS[4]}>
+                    <LabelList dataKey={yAxis} position="top" fill="#fff" fontSize={12} />
+                  </Scatter>
                 </ScatterChart>
               ) : null}
             </ResponsiveContainer>
