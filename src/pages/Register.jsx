@@ -1,8 +1,9 @@
+// client/src/pages/Register.jsx
 import React, { useState } from "react";
 import axios from "../axiosConfig";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
-const Register = () => {
+export default function Register() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -10,125 +11,118 @@ const Register = () => {
     role: "user",
   });
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(""); // success / error message
   const navigate = useNavigate();
 
-  
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((p) => ({ ...p, [name]: value }));
   };
 
-  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
 
     try {
-      const response = await axios.post("/users/register", formData);
+      // Use axios instance baseURL. Make sure axiosConfig.baseURL points to your server.
+      const res = await axios.post("/api/users/register", formData);
 
-      if (response.data) {
-        setMessage("✅ Registration successful! Redirecting to login...");
-        setTimeout(() => navigate("/login"), 2000);
-      }
-    } catch (error) {
-      console.error("Registration error:", error);
-      setMessage(
-        error.response?.data?.message ||
-          "❌ Registration failed. Please try again."
-      );
+      // success
+      setMessage("✅ Registration successful! Redirecting to login...");
+      setTimeout(() => navigate("/login"), 1500);
+    } catch (err) {
+      console.error("Registration error:", err);
+      const errMsg =
+        err.response?.data?.message ||
+        err.message ||
+        "Registration failed. Please try again.";
+      setMessage(`❌ ${errMsg}`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0d1117]">
-      <div className="bg-[#161b22] shadow-lg rounded-lg p-8 w-full max-w-md border border-[#21262d]">
-        <h2 className="text-2xl font-bold text-center mb-6 text-gray-100">
+    <div className="flex items-center justify-center min-h-screen bg-[#0d1117]">
+      <div className="w-full max-w-md p-8 bg-[#161b22] border border-[#30363d] rounded-xl shadow-lg">
+        <h2 className="text-3xl font-bold text-center text-[#c9d1d9] mb-6">
           Register
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-         
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-[#c9d1d9] mb-1">
               Full Name
             </label>
             <input
-              type="text"
               name="name"
+              type="text"
               required
               value={formData.name}
               onChange={handleChange}
-              className="w-full bg-[#0d1117] border border-[#30363d] text-gray-100 rounded-md p-2 focus:ring-2 focus:ring-blue-600 focus:outline-none placeholder-gray-500"
               placeholder="Enter your full name"
+              className="w-full px-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#c9d1d9] focus:outline-none focus:ring-2 focus:ring-[#58a6ff]"
             />
           </div>
 
-         
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-[#c9d1d9] mb-1">
               Email
             </label>
             <input
-              type="email"
               name="email"
+              type="email"
               required
               value={formData.email}
               onChange={handleChange}
-              className="w-full bg-[#0d1117] border border-[#30363d] text-gray-100 rounded-md p-2 focus:ring-2 focus:ring-blue-600 focus:outline-none placeholder-gray-500"
               placeholder="Enter your email"
+              className="w-full px-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#c9d1d9] focus:outline-none focus:ring-2 focus:ring-[#58a6ff]"
             />
           </div>
 
-          
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-[#c9d1d9] mb-1">
               Password
             </label>
             <input
-              type="password"
               name="password"
+              type="password"
               required
               value={formData.password}
               onChange={handleChange}
-              className="w-full bg-[#0d1117] border border-[#30363d] text-gray-100 rounded-md p-2 focus:ring-2 focus:ring-blue-600 focus:outline-none placeholder-gray-500"
               placeholder="Enter your password"
+              className="w-full px-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#c9d1d9] focus:outline-none focus:ring-2 focus:ring-[#58a6ff]"
             />
           </div>
 
-          
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-[#c9d1d9] mb-1">
               Role
             </label>
             <select
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className="w-full bg-[#0d1117] border border-[#30363d] text-gray-100 rounded-md p-2 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+              className="w-full px-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#c9d1d9] focus:outline-none focus:ring-2 focus:ring-[#58a6ff]"
             >
               <option value="user">User</option>
               <option value="admin">Admin</option>
             </select>
           </div>
 
-          
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-200"
+            className="w-full bg-[#1f6feb] text-white py-2 rounded-md hover:bg-[#1669e1] disabled:opacity-60"
           >
             {loading ? "Registering..." : "Register"}
           </button>
         </form>
 
-        
         {message && (
           <p
-            className={`text-center text-sm mt-4 ${
+            className={`mt-4 text-center text-sm ${
               message.startsWith("✅") ? "text-green-400" : "text-red-400"
             }`}
           >
@@ -136,19 +130,13 @@ const Register = () => {
           </p>
         )}
 
-        
-        <p className="text-sm text-center text-gray-400 mt-4">
+        <p className="mt-4 text-center text-sm text-[#8b949e]">
           Already have an account?{" "}
-          <button
-            onClick={() => navigate("/login")}
-            className="text-blue-500 hover:underline"
-          >
+          <Link to="/login" className="text-[#58a6ff] hover:underline">
             Login
-          </button>
+          </Link>
         </p>
       </div>
     </div>
   );
-};
-
-export default Register;
+}
