@@ -34,11 +34,19 @@ const SuperAdminDashboard = () => {
       const allUsers = allUsersRes.data || [];
 
       const superAdminsList = allUsers.filter((u) => u.role === "superadmin");
-      const adminsList = allUsers.filter((u) => u.role === "admin" && u.adminRequestStatus === "accepted");
-      const pendingAdminsList = allUsers.filter((u) => u.adminRequestStatus === "pending");
-      const rejectedAdminsList = allUsers.filter((u) => u.adminRequestStatus === "rejected");
+      const adminsList = allUsers.filter(
+        (u) => u.role === "admin" && u.adminRequestStatus === "accepted"
+      );
+      const pendingAdminsList = allUsers.filter(
+        (u) => u.adminRequestStatus === "pending"
+      );
+      const rejectedAdminsList = allUsers.filter(
+        (u) => u.adminRequestStatus === "rejected"
+      );
       const regularUsersList = allUsers.filter(
-        (u) => u.role === "user" && (!u.adminRequestStatus || u.adminRequestStatus === null)
+        (u) =>
+          u.role === "user" &&
+          (!u.adminRequestStatus || u.adminRequestStatus === null)
       );
 
       setStats({
@@ -78,6 +86,7 @@ const SuperAdminDashboard = () => {
       await axios.put(`/api/users/reject/${id}`, {}, getAuthHeaders());
       toast.success("Rejected successfully!");
       fetchDashboardData();
+      setActiveTab("rejected"); 
     } catch {
       toast.error("Failed to reject");
     }
@@ -88,6 +97,7 @@ const SuperAdminDashboard = () => {
       await axios.put(`/api/users/grant-admin/${id}`, {}, getAuthHeaders());
       toast.success("Granted as Admin!");
       fetchDashboardData();
+      setActiveTab("allAdmins"); 
     } catch {
       toast.error("Failed to grant admin");
     }
@@ -98,6 +108,7 @@ const SuperAdminDashboard = () => {
       await axios.put(`/api/users/grant-user/${id}`, {}, getAuthHeaders());
       toast.success("Granted as User!");
       fetchDashboardData();
+      setActiveTab("allUsers"); 
     } catch {
       toast.error("Failed to grant user");
     }
@@ -153,28 +164,50 @@ const SuperAdminDashboard = () => {
               </td>
               <td style={tdStyle}>{formatDate(user.createdAt)}</td>
               <td style={tdStyle}>{formatDate(user.lastLogin)}</td>
-              <td style={{ ...tdStyle, display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <td
+                style={{
+                  ...tdStyle,
+                  display: "flex",
+                  gap: "8px",
+                  flexWrap: "wrap",
+                }}
+              >
                 {activeTab === "pending" && (
                   <>
-                    <button style={btnGreen} onClick={() => handleApprove(user._id)}>
+                    <button
+                      style={btnGreen}
+                      onClick={() => handleApprove(user._id)}
+                    >
                       Approve
                     </button>
-                    <button style={btnRed} onClick={() => handleReject(user._id)}>
+                    <button
+                      style={btnRed}
+                      onClick={() => handleReject(user._id)}
+                    >
                       Reject
                     </button>
                   </>
                 )}
                 {(activeTab === "allAdmins" || activeTab === "allUsers") && (
-                  <button style={btnRed} onClick={() => handleReject(user._id)}>
+                  <button
+                    style={btnRed}
+                    onClick={() => handleReject(user._id)}
+                  >
                     Reject
                   </button>
                 )}
                 {activeTab === "rejected" && (
                   <>
-                    <button style={btnBlue} onClick={() => handleGrantUser(user._id)}>
+                    <button
+                      style={btnBlue}
+                      onClick={() => handleGrantUser(user._id)}
+                    >
                       Grant User
                     </button>
-                    <button style={btnPurple} onClick={() => handleGrantAdmin(user._id)}>
+                    <button
+                      style={btnPurple}
+                      onClick={() => handleGrantAdmin(user._id)}
+                    >
                       Grant Admin
                     </button>
                   </>
@@ -211,8 +244,16 @@ const SuperAdminDashboard = () => {
         padding: "2rem",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1rem" }}>
-        <h1 style={{ fontSize: "24px", fontWeight: "bold" }}>Super Admin Dashboard</h1>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: "1rem",
+        }}
+      >
+        <h1 style={{ fontSize: "24px", fontWeight: "bold" }}>
+          Super Admin Dashboard
+        </h1>
         <div
           style={{
             display: "flex",
@@ -240,7 +281,7 @@ const SuperAdminDashboard = () => {
         </div>
       </div>
 
-      {/* Stats */}
+     
       <div
         style={{
           display: "grid",
@@ -250,17 +291,45 @@ const SuperAdminDashboard = () => {
         }}
       >
         <StatCard title="Total Users" icon={<Users />} value={stats.users} />
-        <StatCard title="Super Admins" icon={<Shield />} value={stats.superAdmins} />
+        <StatCard
+          title="Super Admins"
+          icon={<Shield />}
+          value={stats.superAdmins}
+        />
         <StatCard title="Admins" icon={<UserCheck />} value={stats.admins} />
         <StatCard title="Pending" icon={<Clock />} value={stats.pending} />
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem", gap: "10px", flexWrap: "wrap" }}>
-        <TabButton label="Pending Requests" active={activeTab === "pending"} onClick={() => setActiveTab("pending")} />
-        <TabButton label="Admitted Admins" active={activeTab === "allAdmins"} onClick={() => setActiveTab("allAdmins")} />
-        <TabButton label="Rejected Admins" active={activeTab === "rejected"} onClick={() => setActiveTab("rejected")} />
-        <TabButton label="Regular Users" active={activeTab === "allUsers"} onClick={() => setActiveTab("allUsers")} />
+      
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          marginBottom: "1rem",
+          gap: "10px",
+          flexWrap: "wrap",
+        }}
+      >
+        <TabButton
+          label={`Pending Requests (${stats.pending})`}
+          active={activeTab === "pending"}
+          onClick={() => setActiveTab("pending")}
+        />
+        <TabButton
+          label={`Admitted Admins (${stats.admins})`}
+          active={activeTab === "allAdmins"}
+          onClick={() => setActiveTab("allAdmins")}
+        />
+        <TabButton
+          label={`Rejected Admins (${stats.rejected})`}
+          active={activeTab === "rejected"}
+          onClick={() => setActiveTab("rejected")}
+        />
+        <TabButton
+          label={`Regular Users (${stats.users})`}
+          active={activeTab === "allUsers"}
+          onClick={() => setActiveTab("allUsers")}
+        />
       </div>
 
       {renderTab()}
@@ -268,7 +337,7 @@ const SuperAdminDashboard = () => {
   );
 };
 
-// ===== Sub Components =====
+
 
 const StatCard = ({ title, icon, value }) => (
   <div
@@ -281,7 +350,16 @@ const StatCard = ({ title, icon, value }) => (
     }}
   >
     <div style={{ fontSize: "14px", color: "#9ca3af" }}>{title}</div>
-    <div style={{ fontSize: "22px", fontWeight: "bold", color: "#22d3ee", marginTop: "4px" }}>{value}</div>
+    <div
+      style={{
+        fontSize: "22px",
+        fontWeight: "bold",
+        color: "#22d3ee",
+        marginTop: "4px",
+      }}
+    >
+      {value}
+    </div>
   </div>
 );
 
@@ -302,7 +380,7 @@ const TabButton = ({ label, active, onClick }) => (
   </button>
 );
 
-// ===== Inline Styles =====
+
 const thStyle = {
   padding: "10px",
   textAlign: "left",
