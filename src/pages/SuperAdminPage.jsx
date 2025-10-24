@@ -1,236 +1,405 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { Users, UserPlus, Clock, UserCheck } from 'lucide-react';
 
-const SuperAdminPage = () => {
-  const [users, setUsers] = useState([]);
-  const [admins, setAdmins] = useState([]);
+const SuperAdminDashboard = () => {
+  const [stats, setStats] = useState({
+    users: 0,
+    superAdmins: 0,
+    admins: 0,
+    pending: 0,
+    rejected: 0,
+  });
   const [pendingAdmins, setPendingAdmins] = useState([]);
+  const [allAdmins, setAllAdmins] = useState([]);
   const [rejectedAdmins, setRejectedAdmins] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [regularUsers, setRegularUsers] = useState([]);
+  const [activeTab, setActiveTab] = useState('pending');
+  const [userEmail, setUserEmail] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const navigate = useNavigate();
+  const dropdownRef = useRef(null);
+  const [activePage, setActivePage] = useState('dashboard');
 
-  const token = localStorage.getItem("token");
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('authToken');
+    return { headers: { Authorization: `Bearer ${token}` } };
+  };
 
-
-  const API_URL =
-    import.meta.env.VITE_API_URL || "https://excel-analysis-server.onrender.com";
-
-
-  useEffect(() => {
-    const fetchAllData = async () => {
-      try {
-        const config = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
-
-        const [usersRes, adminsRes, pendingRes, rejectedRes] = await Promise.all([
-          axios.get(`${API_URL}/api/users/all`, config),
-          axios.get(`${API_URL}/api/users/all-admins`, config),
-          axios.get(`${API_URL}/api/users/pending-admins`, config),
-          axios.get(`${API_URL}/api/users/rejected-admins`, config),
-        ]);
-
-        
-        setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
-        setAdmins(Array.isArray(adminsRes.data) ? adminsRes.data : []);
-        setPendingAdmins(Array.isArray(pendingRes.data) ? pendingRes.data : []);
-        setRejectedAdmins(Array.isArray(rejectedRes.data) ? rejectedRes.data : []);
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to load data. You may not be authorized.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (token) fetchAllData();
-    else setError("Unauthorized: No token found.");
-  }, [token]);
-
-  const handleAction = async (action, userId) => {
+  const fetchDashboardData = async () => {
     try {
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.put(`${API_URL}/api/users/${action}/${userId}`, {}, config);
-      alert(`Action '${action}' completed successfully.`);
-      window.location.reload(); 
-    } catch (err) {
-      console.error(`Error performing ${action}:`, err);
-      alert(`Failed to ${action}. Check console for details.`);
+      const config = getAuthHeaders();
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        toast.error('You are not authenticated. Please log in.');
+        navigate('/login');
+        return;
+      }
+
+      const profileRes = await axios.get('/api/users/profile', config);
+      setUserEmail(profileRes.data.email);
+
+      const allUsersRes = await axios.get('/api/users/all', config);
+      const allUsersList = allUsersRes.data;
+
+      const superAdminsList = allUsersList.filter((u) => u.role === 'superadmin');
+      const adminsList = allUsersList.filter((u) => u.role === 'admin' && u.adminRequestStatus === 'accepted');
+      const pendingAdminsList = allUsersList.filter((u) => u.adminRequestStatus === 'pending');
+      const rejectedAdminsList = allUsersList.filter((u) => u.adminRequestStatus === 'rejected');
+      const regularUsersList = allUsersList.filter((u) => u.role === 'user' && u.adminRequestStatus === null);
+
+      setStats({
+        users: regularUsersList.length,
+        superAdmins: superAdminsList.length,
+        admins: adminsList.length,
+        pending: pendingAdminsList.length,
+        rejected: rejectedAdminsList.length,
+      });
+
+      setPendingAdmins(pendingAdminsList);
+      setAllAdmins(adminsList);
+      setRejectedAdmins(rejectedAdminsList);
+      setRegularUsers(regularUsersList);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        toast.error('Session expired. Please log in again.');
+        localStorage.removeItem('authToken');
+        navigate('/login');
+      } else {
+        toast.error('Failed to fetch dashboard data.');
+      }
     }
   };
 
-  if (loading)
-    return <p className="text-center text-gray-300 mt-10">Loading data...</p>;
-  if (error)
-    return <p className="text-center text-red-500 mt-10">{error}</p>;
+  useEffect(() => {
+    fetchDashboardData();
+  }, [navigate]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleApprove = async (id) => {
+    try {
+      const config = getAuthHeaders();
+      await axios.put(`/api/users/approve/${id}`, {}, config);
+      toast.success('Admin approved successfully!');
+      fetchDashboardData();
+    } catch {
+      toast.error('Failed to approve admin.');
+    }
+  };
+
+  const handleReject = async (id) => {
+    try {
+      const config = getAuthHeaders();
+      await axios.put(`/api/users/reject/${id}`, {}, config);
+      toast.success('Admin request rejected!');
+      fetchDashboardData();
+      setActiveTab('rejected');
+    } catch {
+      toast.error('Failed to reject admin.');
+    }
+  };
+
+  const handleBlock = async (id) => {
+    try {
+      const config = getAuthHeaders();
+      await axios.put(`/api/users/block/${id}`, {}, config);
+      toast.success('User blocked successfully!');
+      fetchDashboardData();
+      setActiveTab('rejected');
+    } catch {
+      toast.error('Failed to block user.');
+    }
+  };
+
+  const handleGrantUser = async (id) => {
+    try {
+      const config = getAuthHeaders();
+      await axios.put(`/api/users/grant-user/${id}`, {}, config);
+      toast.success('User role restored.');
+      fetchDashboardData();
+      setActiveTab('allUsers');
+    } catch {
+      toast.error('Failed to grant user role.');
+    }
+  };
+
+  const handleGrantAdmin = async (id) => {
+    try {
+      const config = getAuthHeaders();
+      await axios.put(`/api/users/grant-admin/${id}`, {}, config);
+      toast.success('Admin role granted successfully!');
+      fetchDashboardData();
+      setActiveTab('allAdmins');
+    } catch {
+      toast.error('Failed to grant admin role.');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    navigate('/login');
+    toast.success('Logged out successfully.');
+  };
+
+  const handleProfileClick = () => navigate('/profile');
+
+  const formatDate = (d) => (d ? new Date(d).toLocaleString() : 'N/A');
+
+  const renderUserTable = (list) => (
+    list?.length ? (
+      <div style={styles.tableContainer}>
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th style={styles.th}>Username</th>
+              <th style={styles.th}>Email</th>
+              <th style={styles.th}>Role</th>
+              <th style={styles.th}>Created On</th>
+              <th style={styles.th}>Last Login</th>
+              <th style={styles.th}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {list.map((user) => (
+              <tr key={user._id} style={styles.tr}>
+                <td style={styles.td}>{user.name}</td>
+                <td style={styles.td}>{user.email}</td>
+                <td style={styles.td}>{user.role}</td>
+                <td style={styles.td}>{formatDate(user.createdAt)}</td>
+                <td style={styles.td}>{formatDate(user.lastLogin)}</td>
+                <td style={styles.actionTd}>
+                  {activeTab === 'pending' && (
+                    <>
+                      <button onClick={() => handleApprove(user._id)} style={styles.approveButton}>Approve</button>
+                      <button onClick={() => handleReject(user._id)} style={styles.rejectButton}>Reject</button>
+                    </>
+                  )}
+                  {activeTab === 'allAdmins' && user.role !== 'superadmin' && (
+                    <button onClick={() => handleBlock(user._id)} style={styles.rejectButton}>Block</button>
+                  )}
+                  {activeTab === 'rejected' && (
+                    <>
+                      <button onClick={() => handleGrantAdmin(user._id)} style={styles.approveButton}>Grant Admin</button>
+                      <button onClick={() => handleGrantUser(user._id)} style={styles.unblockButton}>Grant User</button>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ) : (
+      <p style={styles.noDataText}>No data to display.</p>
+    )
+  );
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'pending': return renderUserTable(pendingAdmins);
+      case 'allAdmins': return renderUserTable(allAdmins);
+      case 'rejected': return renderUserTable(rejectedAdmins);
+      case 'allUsers': return renderUserTable(regularUsers);
+      default: return null;
+    }
+  };
+
+  const getFirstLetter = (email) => email?.charAt(0)?.toUpperCase() || '';
 
   return (
-    <div className="bg-[#0d1117] min-h-screen text-gray-100 p-8">
-      <h1 className="text-3xl font-bold text-center mb-8">
-        Super Admin Dashboard
-      </h1>
+    <div style={styles.dashboardLayout}>
+      <div style={styles.mainContentArea}>
+        <nav style={styles.topBar}>
+          <div style={styles.topBarTitle}>Super Admin Dashboard</div>
+          <div style={styles.dropdownContainer} ref={dropdownRef}>
+            <div style={styles.userInfo} onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+              <div style={styles.avatar}>{getFirstLetter(userEmail)}</div>
+              <span style={styles.userEmail}>{userEmail}</span>
+            </div>
+            {isDropdownOpen && (
+              <div style={styles.dropdownMenu}>
+                <button onClick={handleProfileClick} style={styles.dropdownItem}>Profile</button>
+                <button onClick={handleLogout} style={{ ...styles.dropdownItem, color: '#ff5555' }}>Logout</button>
+              </div>
+            )}
+          </div>
+        </nav>
 
-     
-      <section className="mb-10">
-        <h2 className="text-2xl font-semibold mb-4">All Users</h2>
-        {users.length ? (
-          <table className="w-full text-sm border border-gray-700 rounded-lg">
-            <thead className="bg-[#161b22] text-gray-300">
-              <tr>
-                <th className="p-3">Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr
-                  key={u._id}
-                  className="border-t border-gray-700 hover:bg-[#1c2128]"
-                >
-                  <td className="p-3">{u.name}</td>
-                  <td>{u.email}</td>
-                  <td>{u.role}</td>
-                  <td>{u.isBlocked ? "Blocked" : "Active"}</td>
-                  <td className="space-x-2">
-                    {u.isBlocked ? (
-                      <button
-                        onClick={() => handleAction("unblock", u._id)}
-                        className="px-3 py-1 text-xs bg-green-600 rounded"
-                      >
-                        Unblock
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleAction("block", u._id)}
-                        className="px-3 py-1 text-xs bg-red-600 rounded"
-                      >
-                        Block
-                      </button>
-                    )}
-                    {u.role === "user" && (
-                      <button
-                        onClick={() => handleAction("grant-admin", u._id)}
-                        className="px-3 py-1 text-xs bg-blue-600 rounded"
-                      >
-                        Make Admin
-                      </button>
-                    )}
-                    {u.role === "admin" && (
-                      <button
-                        onClick={() => handleAction("grant-user", u._id)}
-                        className="px-3 py-1 text-xs bg-yellow-600 rounded"
-                      >
-                        Make User
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>No users found.</p>
-        )}
-      </section>
+        <div style={styles.mainContent}>
+          <div style={styles.statsGrid}>
+            <div style={styles.statCard}><Users size={32} color="#00e676" /><span style={styles.statLabel}>Users</span><span style={styles.statValue}>{stats.users}</span></div>
+            <div style={styles.statCard}><UserCheck size={32} color="#00bcd4" /><span style={styles.statLabel}>Super Admins</span><span style={styles.statValue}>{stats.superAdmins}</span></div>
+            <div style={styles.statCard}><UserPlus size={32} color="#ffb300" /><span style={styles.statLabel}>Admins</span><span style={styles.statValue}>{stats.admins}</span></div>
+            <div style={styles.statCard}><Clock size={32} color="#ff7043" /><span style={styles.statLabel}>Pending</span><span style={styles.statValue}>{stats.pending}</span></div>
+          </div>
 
-   
-      <section className="mb-10">
-        <h2 className="text-2xl font-semibold mb-4 text-blue-400">All Admins</h2>
-        {admins.length ? (
-          <table className="w-full text-sm border border-gray-700 rounded-lg">
-            <thead className="bg-[#161b22] text-gray-300">
-              <tr>
-                <th className="p-3">Name</th>
-                <th>Email</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {admins.map((a) => (
-                <tr
-                  key={a._id}
-                  className="border-t border-gray-700 hover:bg-[#1c2128]"
-                >
-                  <td className="p-3">{a.name}</td>
-                  <td>{a.email}</td>
-                  <td>{a.status || "Active"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>No admins found.</p>
-        )}
-      </section>
-
-
-      <section className="mb-10">
-        <h2 className="text-2xl font-semibold mb-4 text-yellow-400">
-          Pending Admin Approvals
-        </h2>
-        {pendingAdmins.length ? (
-          <table className="w-full text-sm border border-gray-700 rounded-lg">
-            <thead className="bg-[#161b22] text-gray-300">
-              <tr>
-                <th className="p-3">Name</th>
-                <th>Email</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pendingAdmins.map((a) => (
-                <tr
-                  key={a._id}
-                  className="border-t border-gray-700 hover:bg-[#1c2128]"
-                >
-                  <td className="p-3">{a.name}</td>
-                  <td>{a.email}</td>
-                  <td className="space-x-2">
-                    <button
-                      onClick={() => handleAction("approve", a._id)}
-                      className="px-3 py-1 text-xs bg-green-600 rounded"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => handleAction("reject-admin", a._id)}
-                      className="px-3 py-1 text-xs bg-red-600 rounded"
-                    >
-                      Reject
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>No pending admin requests.</p>
-        )}
-      </section>
-
-      <section>
-        <h2 className="text-2xl font-semibold mb-4 text-red-400">
-          Rejected Admin Requests
-        </h2>
-        {rejectedAdmins.length ? (
-          <ul className="list-disc ml-6">
-            {rejectedAdmins.map((a) => (
-              <li key={a._id}>
-                {a.name} — {a.email}
-              </li>
+          <div style={styles.tabsContainer}>
+            {['pending', 'allAdmins', 'rejected', 'allUsers'].map((tab) => (
+              <button
+                key={tab}
+                style={activeTab === tab ? styles.tabButtonActive : styles.tabButton}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab === 'pending' && `Pending (${pendingAdmins.length})`}
+                {tab === 'allAdmins' && `Admins (${allAdmins.length})`}
+                {tab === 'rejected' && `Rejected (${rejectedAdmins.length})`}
+                {tab === 'allUsers' && `Users (${regularUsers.length})`}
+              </button>
             ))}
-          </ul>
-        ) : (
-          <p>No rejected admins.</p>
-        )}
-      </section>
+          </div>
+
+          <div style={styles.userListContainer}>{renderTabContent()}</div>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default SuperAdminPage;
+const styles = {
+  dashboardLayout: {
+    display: 'flex',
+    minHeight: '100vh',
+    background: 'linear-gradient(135deg, #121212, #1e1e2f)',
+    color: '#e0e0e0',
+    fontFamily: 'Inter, system-ui, sans-serif',
+  },
+  mainContentArea: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  topBar: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '1rem 2rem',
+    backgroundColor: '#232334',
+    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.3)',
+  },
+  topBarTitle: {
+    fontSize: '1.5rem',
+    fontWeight: '700',
+    color: '#00e676',
+  },
+  dropdownContainer: { position: 'relative' },
+  userInfo: { display: 'flex', alignItems: 'center', cursor: 'pointer', gap: '8px' },
+  avatar: {
+    width: '36px',
+    height: '36px',
+    borderRadius: '50%',
+    backgroundColor: '#333',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    color: '#00e676',
+    fontWeight: 'bold',
+  },
+  userEmail: { fontSize: '1rem', color: '#bbb' },
+  dropdownMenu: {
+    position: 'absolute',
+    top: '110%',
+    right: 0,
+    background: '#2a2a3c',
+    borderRadius: '6px',
+    overflow: 'hidden',
+    boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+    zIndex: 100,
+  },
+  dropdownItem: {
+    width: '100%',
+    padding: '10px 16px',
+    background: 'transparent',
+    border: 'none',
+    textAlign: 'left',
+    cursor: 'pointer',
+    color: '#eee',
+    transition: 'background 0.2s',
+  },
+  mainContent: { maxWidth: '1200px', margin: '2rem auto', padding: '0 1rem' },
+  statsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+    gap: '1.5rem',
+    marginBottom: '2rem',
+  },
+  statCard: {
+    background: '#292940',
+    borderRadius: '10px',
+    padding: '1.5rem',
+    textAlign: 'center',
+    boxShadow: '0 4px 10px rgba(0,0,0,0.4)',
+    transition: 'transform 0.2s ease',
+  },
+  statCardHover: { transform: 'scale(1.02)' },
+  statLabel: { color: '#aaa', marginTop: '0.5rem', fontSize: '1rem' },
+  statValue: { color: '#00e676', fontSize: '1.8rem', fontWeight: 600 },
+  tabsContainer: { display: 'flex', gap: '0.8rem', flexWrap: 'wrap', marginBottom: '1.5rem' },
+  tabButton: {
+    background: '#303050',
+    color: '#ccc',
+    border: '1px solid #404060',
+    padding: '0.6rem 1.2rem',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  },
+  tabButtonActive: {
+    background: '#00e676',
+    color: '#111',
+    border: '1px solid #00e676',
+    padding: '0.6rem 1.2rem',
+    borderRadius: '6px',
+    fontWeight: 600,
+  },
+  userListContainer: {
+    background: '#232334',
+    padding: '1.5rem',
+    borderRadius: '8px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+  },
+  tableContainer: { overflowX: 'auto' },
+  table: { width: '100%', borderCollapse: 'collapse', marginTop: '1rem' },
+  th: { padding: '0.75rem', textAlign: 'left', color: '#00e676', fontWeight: 600, borderBottom: '1px solid #333' },
+  td: { padding: '0.75rem', color: '#ddd', borderBottom: '1px solid #333' },
+  actionTd: { display: 'flex', gap: '0.5rem' },
+  approveButton: {
+    background: '#4caf50',
+    border: 'none',
+    borderRadius: '5px',
+    padding: '6px 12px',
+    color: '#fff',
+    cursor: 'pointer',
+    transition: 'background 0.2s',
+  },
+  rejectButton: {
+    background: '#f44336',
+    border: 'none',
+    borderRadius: '5px',
+    padding: '6px 12px',
+    color: '#fff',
+    cursor: 'pointer',
+  },
+  unblockButton: {
+    background: '#2196f3',
+    border: 'none',
+    borderRadius: '5px',
+    padding: '6px 12px',
+    color: '#fff',
+    cursor: 'pointer',
+  },
+  noDataText: { textAlign: 'center', padding: '1.5rem', color: '#888', fontStyle: 'italic' },
+};
+
+export default SuperAdminDashboard;
