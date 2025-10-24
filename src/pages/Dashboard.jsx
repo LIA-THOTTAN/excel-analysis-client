@@ -82,7 +82,6 @@ export default function Dashboard() {
     reader.readAsBinaryString(file);
   };
 
-
   const handleUploadToServer = async () => {
     if (!selectedFile) {
       setMessage("Please select a file to upload.");
@@ -156,7 +155,6 @@ export default function Dashboard() {
     setGenerated(true);
   };
 
-  
   const handleSavePng = () => {
     if (!chartRef.current) return;
     toPng(chartRef.current).then((dataUrl) => {
@@ -167,7 +165,6 @@ export default function Dashboard() {
     });
   };
 
-  
   const handleSavePdf = () => {
     if (!chartRef.current) return;
     toPng(chartRef.current).then((dataUrl) => {
@@ -181,7 +178,6 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#0d1117] text-[#c9d1d9] p-8 font-sans">
-      
       <div className="w-full max-w-xl mx-auto space-y-6 bg-[#161b22] border border-[#30363d] p-8 rounded-xl shadow-lg">
         <h2 className="text-2xl font-bold text-center">Upload Excel File</h2>
 
@@ -214,7 +210,6 @@ export default function Dashboard() {
           )}
         </div>
 
-        
         {columns.length > 0 && (
           <div className="space-y-4">
             <div>
@@ -280,7 +275,6 @@ export default function Dashboard() {
         )}
       </div>
 
-      
       {generated && chartData.length > 0 && (
         <div className="mt-12 w-full max-w-5xl mx-auto h-[450px] border border-[#30363d] rounded-lg bg-[#161b22] p-4 shadow-lg">
           <h3 className="text-xl font-bold mb-4 text-center">
@@ -328,7 +322,7 @@ export default function Dashboard() {
                     cx="50%"
                     cy="50%"
                     outerRadius={90}
-                    label={({ name }) => `${name}`}
+                    label={({ name, value }) => `${name}: ${value}`}
                     labelLine={false}
                   >
                     {chartData.map((entry, i) => (
@@ -347,7 +341,7 @@ export default function Dashboard() {
                     cy="50%"
                     innerRadius={50}
                     outerRadius={90}
-                    label={({ name }) => `${name}`}
+                    label={({ name, value }) => `${name}: ${value}`}
                     labelLine={false}
                   >
                     {chartData.map((entry, i) => (
@@ -371,7 +365,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      
       {generated && chartData.length > 0 && (
         <div className="flex justify-center mt-6 space-x-4">
           <button
