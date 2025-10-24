@@ -7,13 +7,13 @@ const Register = () => {
     name: "",
     email: "",
     password: "",
-    role: "user", 
+    role: "user",
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
- 
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -44,16 +44,16 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
-          Create an Account
+    <div className="min-h-screen flex items-center justify-center bg-[#0d1117]">
+      <div className="bg-[#161b22] shadow-lg rounded-lg p-8 w-full max-w-md border border-[#21262d]">
+        <h2 className="text-2xl font-bold text-center mb-6 text-gray-100">
+          Register
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          
+         
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Full Name
             </label>
             <input
@@ -62,15 +62,15 @@ const Register = () => {
               required
               value={formData.name}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2 focus:ring focus:ring-blue-300 outline-none"
+              className="w-full bg-[#0d1117] border border-[#30363d] text-gray-100 rounded-md p-2 focus:ring-2 focus:ring-blue-600 focus:outline-none placeholder-gray-500"
               placeholder="Enter your full name"
             />
           </div>
 
-          
+         
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
-              Email Address
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Email
             </label>
             <input
               type="email"
@@ -78,14 +78,14 @@ const Register = () => {
               required
               value={formData.email}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2 focus:ring focus:ring-blue-300 outline-none"
+              className="w-full bg-[#0d1117] border border-[#30363d] text-gray-100 rounded-md p-2 focus:ring-2 focus:ring-blue-600 focus:outline-none placeholder-gray-500"
               placeholder="Enter your email"
             />
           </div>
 
-         
+          
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Password
             </label>
             <input
@@ -94,31 +94,32 @@ const Register = () => {
               required
               value={formData.password}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2 focus:ring focus:ring-blue-300 outline-none"
+              className="w-full bg-[#0d1117] border border-[#30363d] text-gray-100 rounded-md p-2 focus:ring-2 focus:ring-blue-600 focus:outline-none placeholder-gray-500"
               placeholder="Enter your password"
             />
           </div>
 
           
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Role
             </label>
             <select
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2 focus:ring focus:ring-blue-300 outline-none"
+              className="w-full bg-[#0d1117] border border-[#30363d] text-gray-100 rounded-md p-2 focus:ring-2 focus:ring-blue-600 focus:outline-none"
             >
               <option value="user">User</option>
               <option value="admin">Admin</option>
             </select>
           </div>
 
+          
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-200"
           >
             {loading ? "Registering..." : "Register"}
           </button>
@@ -126,17 +127,23 @@ const Register = () => {
 
         
         {message && (
-          <p className="text-center text-sm mt-4 text-gray-700">{message}</p>
+          <p
+            className={`text-center text-sm mt-4 ${
+              message.startsWith("✅") ? "text-green-400" : "text-red-400"
+            }`}
+          >
+            {message}
+          </p>
         )}
 
-       
-        <p className="text-sm text-center text-gray-600 mt-4">
+        
+        <p className="text-sm text-center text-gray-400 mt-4">
           Already have an account?{" "}
           <button
             onClick={() => navigate("/login")}
-            className="text-blue-600 hover:underline"
+            className="text-blue-500 hover:underline"
           >
-            Login here
+            Login
           </button>
         </p>
       </div>
