@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "../axiosConfig";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Users, UserPlus, Clock, UserCheck, LayoutDashboard, Upload, History } from "lucide-react";
+import { Users, UserCheck, Clock, LayoutDashboard } from "lucide-react";
 
 const SuperAdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -18,7 +18,6 @@ const SuperAdminDashboard = () => {
   const [regularUsers, setRegularUsers] = useState([]);
   const [activeTab, setActiveTab] = useState("pending");
   const [userEmail, setUserEmail] = useState("");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
 
@@ -48,8 +47,12 @@ const SuperAdminDashboard = () => {
       const adminsList = allUsersList.filter(
         (u) => u.role === "admin" && u.adminRequestStatus === "accepted"
       );
-      const pendingAdminsList = allUsersList.filter((u) => u.adminRequestStatus === "pending");
-      const rejectedAdminsList = allUsersList.filter((u) => u.adminRequestStatus === "rejected");
+      const pendingAdminsList = allUsersList.filter(
+        (u) => u.adminRequestStatus === "pending"
+      );
+      const rejectedAdminsList = allUsersList.filter(
+        (u) => u.adminRequestStatus === "rejected"
+      );
       const regularUsersList = allUsersList.filter(
         (u) => u.role === "user" && (!u.adminRequestStatus || u.adminRequestStatus === null)
       );
@@ -82,16 +85,6 @@ const SuperAdminDashboard = () => {
     fetchDashboardData();
   }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   const handleApprove = async (id) => {
     try {
       const config = getAuthHeaders();
@@ -106,11 +99,33 @@ const SuperAdminDashboard = () => {
   const handleReject = async (id) => {
     try {
       const config = getAuthHeaders();
-      await axios.put(`/api/users/reject/${id}`, {}, config);
-      toast.success("Admin rejected!");
+      await axios.put(`/api/users/reject-admin/${id}`, {}, config);
+      toast.success("User/Admin rejected successfully!");
       fetchDashboardData();
     } catch {
-      toast.error("Failed to reject admin.");
+      toast.error("Failed to reject user/admin.");
+    }
+  };
+
+  const handleGrantAdmin = async (id) => {
+    try {
+      const config = getAuthHeaders();
+      await axios.put(`/api/users/grant-admin/${id}`, {}, config);
+      toast.success("Granted Admin role successfully!");
+      fetchDashboardData();
+    } catch {
+      toast.error("Failed to grant admin role.");
+    }
+  };
+
+  const handleGrantUser = async (id) => {
+    try {
+      const config = getAuthHeaders();
+      await axios.put(`/api/users/grant-user/${id}`, {}, config);
+      toast.success("Granted User role successfully!");
+      fetchDashboardData();
+    } catch {
+      toast.error("Failed to grant user role.");
     }
   };
 
@@ -155,7 +170,7 @@ const SuperAdminDashboard = () => {
                 </td>
                 <td className="p-3">{formatDate(user.createdAt)}</td>
                 <td className="p-3">{formatDate(user.lastLogin)}</td>
-                <td className="p-3 flex gap-2">
+                <td className="p-3 flex gap-2 flex-wrap">
                   {activeTab === "pending" && (
                     <>
                       <button
@@ -169,6 +184,41 @@ const SuperAdminDashboard = () => {
                         className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
                       >
                         Reject
+                      </button>
+                    </>
+                  )}
+
+                  {activeTab === "allAdmins" && (
+                    <button
+                      onClick={() => handleReject(user._id)}
+                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+                    >
+                      Reject
+                    </button>
+                  )}
+
+                  {activeTab === "allUsers" && (
+                    <button
+                      onClick={() => handleReject(user._id)}
+                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+                    >
+                      Reject
+                    </button>
+                  )}
+
+                  {activeTab === "rejected" && (
+                    <>
+                      <button
+                        onClick={() => handleGrantUser(user._id)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
+                      >
+                        Grant User
+                      </button>
+                      <button
+                        onClick={() => handleGrantAdmin(user._id)}
+                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded"
+                      >
+                        Grant Admin
                       </button>
                     </>
                   )}
@@ -198,7 +248,7 @@ const SuperAdminDashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-[#0d1117] text-gray-200">
-     
+   
       <aside className="w-64 bg-[#161b22] border-r border-[#30363d] p-6 flex flex-col">
         <h2 className="text-xl font-bold mb-6 text-blue-400">Super Admin Panel</h2>
         <nav className="flex flex-col gap-2">
@@ -243,6 +293,7 @@ const SuperAdminDashboard = () => {
             <Users size={18} /> Users
           </button>
         </nav>
+
         <div className="mt-auto pt-4 border-t border-[#30363d]">
           <button
             onClick={handleLogout}
@@ -253,7 +304,7 @@ const SuperAdminDashboard = () => {
         </div>
       </aside>
 
-     
+      
       <main className="flex-1 p-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Super Admin Dashboard</h1>
@@ -285,7 +336,8 @@ const SuperAdminDashboard = () => {
           </div>
         </div>
 
-        <div className="flex gap-3 mb-4">
+        
+        <div className="flex gap-3 mb-4 flex-wrap">
           <button
             className={`px-4 py-2 rounded ${
               activeTab === "pending" ? "bg-purple-600 text-white" : "bg-[#161b22]"
@@ -320,7 +372,7 @@ const SuperAdminDashboard = () => {
           </button>
         </div>
 
-        
+       
         {renderTabContent()}
       </main>
     </div>
