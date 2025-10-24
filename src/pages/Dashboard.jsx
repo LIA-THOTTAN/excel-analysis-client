@@ -1,19 +1,40 @@
-
 import React, { useState, useRef } from "react";
 import * as XLSX from "xlsx";
 import axios from "../axiosConfig";
 import {
-  LineChart, Line, BarChart, Bar, PieChart, Pie,
-  XAxis, YAxis, Tooltip, Legend, CartesianGrid,
-  ResponsiveContainer, Cell, ScatterChart, Scatter, LabelList,
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  CartesianGrid,
+  ResponsiveContainer,
+  Cell,
+  ScatterChart,
+  Scatter,
+  LabelList,
 } from "recharts";
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
 
 const COLORS = [
-  "#0088FE", "#00C49F", "#FFBB28", "#FF8042",
-  "#AF19FF", "#FF0056", "#8A2BE2", "#7FFF00",
-  "#FFC0CB", "#ADD8E6", "#DDA0DD", "#90EE90",
+  "#0088FE",
+  "#00C49F",
+  "#FFBB28",
+  "#FF8042",
+  "#AF19FF",
+  "#FF0056",
+  "#8A2BE2",
+  "#7FFF00",
+  "#FFC0CB",
+  "#ADD8E6",
+  "#DDA0DD",
+  "#90EE90",
 ];
 
 export default function Dashboard() {
@@ -26,10 +47,8 @@ export default function Dashboard() {
   const [message, setMessage] = useState("");
   const [chartData, setChartData] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
-
   const chartRef = useRef(null);
 
- 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -63,7 +82,7 @@ export default function Dashboard() {
     reader.readAsBinaryString(file);
   };
 
-  
+
   const handleUploadToServer = async () => {
     if (!selectedFile) {
       setMessage("Please select a file to upload.");
@@ -81,16 +100,13 @@ export default function Dashboard() {
 
     try {
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
       const config = {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`, 
+          Authorization: `Bearer ${token}`,
         },
       };
-
-      await axios.post(`${API_BASE_URL}/users/upload`, formData, config);
-
+      await axios.post(`${API_BASE_URL}/api/users/upload`, formData, config);
       setMessage("File uploaded successfully!");
       setSelectedFile(null);
     } catch (error) {
@@ -100,17 +116,14 @@ export default function Dashboard() {
     }
   };
 
-  
   const handleGenerateGraph = () => {
     setMessage("");
-
     if (!xAxis || !yAxis) {
       setMessage("Please select required axes.");
       return;
     }
 
     let formattedData = [];
-
     if (chartType === "Pie" || chartType === "Donut") {
       const sums = data.reduce((acc, row) => {
         const category = row[xAxis];
@@ -146,7 +159,7 @@ export default function Dashboard() {
   
   const handleSavePng = () => {
     if (!chartRef.current) return;
-    toPng(chartRef.current, { backgroundColor: "#ffffff" }).then((dataUrl) => {
+    toPng(chartRef.current).then((dataUrl) => {
       const link = document.createElement("a");
       link.download = "chart.png";
       link.href = dataUrl;
@@ -154,10 +167,10 @@ export default function Dashboard() {
     });
   };
 
-  // 📄 Export as PDF
+  
   const handleSavePdf = () => {
     if (!chartRef.current) return;
-    toPng(chartRef.current, { backgroundColor: "#ffffff" }).then((dataUrl) => {
+    toPng(chartRef.current).then((dataUrl) => {
       const pdf = new jsPDF("landscape");
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight() * 0.8;
@@ -168,7 +181,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#0d1117] text-[#c9d1d9] p-8 font-sans">
-      {/* 📁 Upload Section */}
+      
       <div className="w-full max-w-xl mx-auto space-y-6 bg-[#161b22] border border-[#30363d] p-8 rounded-xl shadow-lg">
         <h2 className="text-2xl font-bold text-center">Upload Excel File</h2>
 
@@ -186,9 +199,11 @@ export default function Dashboard() {
             onChange={handleFileChange}
             className="hidden"
           />
+
           {selectedFile && (
             <p className="mt-2 text-sm">Selected: {selectedFile.name}</p>
           )}
+
           {selectedFile && (
             <button
               onClick={handleUploadToServer}
@@ -217,6 +232,7 @@ export default function Dashboard() {
                 ))}
               </select>
             </div>
+
             <div>
               <label className="block text-sm mb-1">Y-Axis:</label>
               <select
@@ -232,6 +248,7 @@ export default function Dashboard() {
                 ))}
               </select>
             </div>
+
             <div>
               <label className="block text-sm mb-1">Chart Type:</label>
               <select
@@ -246,6 +263,7 @@ export default function Dashboard() {
                 <option value="Scatter">Scatter Plot</option>
               </select>
             </div>
+
             <button
               onClick={handleGenerateGraph}
               className="w-full bg-[#238636] text-white py-3 rounded-md hover:bg-[#2ea043]"
@@ -268,6 +286,7 @@ export default function Dashboard() {
           <h3 className="text-xl font-bold mb-4 text-center">
             {chartType} Chart for {xAxis} vs {yAxis}
           </h3>
+
           <div className="h-[380px]" ref={chartRef}>
             <ResponsiveContainer width="100%" height="100%">
               {chartType === "Line" ? (
@@ -282,9 +301,7 @@ export default function Dashboard() {
                     dataKey={yAxis}
                     stroke={COLORS[0]}
                     strokeWidth={2}
-                  >
-                    <LabelList dataKey={yAxis} position="top" fill="#fff" fontSize={12} />
-                  </Line>
+                  />
                 </LineChart>
               ) : chartType === "Bar" ? (
                 <BarChart data={chartData}>
@@ -294,10 +311,15 @@ export default function Dashboard() {
                   <Tooltip />
                   <Legend />
                   <Bar dataKey={yAxis} fill={COLORS[1]} barSize={30}>
-                    <LabelList dataKey={yAxis} position="top" fill="#fff" fontSize={12} />
+                    <LabelList
+                      dataKey={yAxis}
+                      position="top"
+                      fill="#fff"
+                      fontSize={12}
+                    />
                   </Bar>
                 </BarChart>
-              ) : chartType === "Pie" || chartType === "Donut" ? (
+              ) : chartType === "Pie" ? (
                 <PieChart>
                   <Pie
                     data={chartData}
@@ -305,16 +327,34 @@ export default function Dashboard() {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    innerRadius={chartType === "Donut" ? 50 : 0}
                     outerRadius={90}
-                    label
+                    label={({ name }) => `${name}`}
+                    labelLine={false}
                   >
                     {chartData.map((entry, i) => (
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip />
-                  <Legend />
+                </PieChart>
+              ) : chartType === "Donut" ? (
+                <PieChart>
+                  <Pie
+                    data={chartData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={90}
+                    label={({ name }) => `${name}`}
+                    labelLine={false}
+                  >
+                    {chartData.map((entry, i) => (
+                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
                 </PieChart>
               ) : chartType === "Scatter" ? (
                 <ScatterChart>
@@ -323,9 +363,7 @@ export default function Dashboard() {
                   <YAxis dataKey={yAxis} stroke="#c9d1d9" />
                   <Tooltip />
                   <Legend />
-                  <Scatter data={chartData} fill={COLORS[4]}>
-                    <LabelList dataKey={yAxis} position="top" fill="#fff" fontSize={12} />
-                  </Scatter>
+                  <Scatter data={chartData} fill={COLORS[4]} />
                 </ScatterChart>
               ) : null}
             </ResponsiveContainer>
