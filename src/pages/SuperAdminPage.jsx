@@ -253,7 +253,6 @@ const SuperAdminDashboard = () => {
         </div>
       </aside>
 
-      
       <main className="flex-1 p-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Super Admin Dashboard</h1>
@@ -265,7 +264,6 @@ const SuperAdminDashboard = () => {
           </div>
         </div>
 
-    
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4 text-center">
             <p className="text-gray-400">Total Users</p>
@@ -285,7 +283,7 @@ const SuperAdminDashboard = () => {
           </div>
         </div>
 
-       
+     
         <div className="flex gap-3 mb-4">
           <button
             className={`px-4 py-2 rounded ${
@@ -321,7 +319,6 @@ const SuperAdminDashboard = () => {
           </button>
         </div>
 
-       
         {renderTabContent()}
       </main>
     </div>
