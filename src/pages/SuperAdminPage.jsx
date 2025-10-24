@@ -194,16 +194,16 @@ const SuperAdminDashboard = () => {
                     style={btnRed}
                     onClick={async () => {
                       try {
-                        // 🔹 if user is admin, revoke admin access first
+
                         if (user.role === "admin") {
                           await axios.put(
-                            `/api/users/revoke-admin/${user._id}`,
+                            `/api/users/rejectAdmin/${user._id}`,
                             {},
                             getAuthHeaders()
                           );
                         }
 
-                        // then mark as rejected
+                       
                         await axios.put(
                           `/api/users/reject/${user._id}`,
                           {},
