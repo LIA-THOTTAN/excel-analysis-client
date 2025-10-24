@@ -198,7 +198,7 @@ const SuperAdminDashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-[#0d1117] text-gray-200">
-      {/* Sidebar */}
+      
       <aside className="w-64 bg-[#161b22] border-r border-[#30363d] p-6 flex flex-col">
         <h2 className="text-xl font-bold mb-6 text-blue-400">Super Admin Panel</h2>
         <nav className="flex flex-col gap-2">
@@ -253,7 +253,7 @@ const SuperAdminDashboard = () => {
         </div>
       </aside>
 
-      {/* Main Content */}
+      
       <main className="flex-1 p-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Super Admin Dashboard</h1>
@@ -265,7 +265,7 @@ const SuperAdminDashboard = () => {
           </div>
         </div>
 
-        {/* Stats */}
+    
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4 text-center">
             <p className="text-gray-400">Total Users</p>
@@ -285,7 +285,7 @@ const SuperAdminDashboard = () => {
           </div>
         </div>
 
-        {/* Tabs */}
+       
         <div className="flex gap-3 mb-4">
           <button
             className={`px-4 py-2 rounded ${
@@ -321,7 +321,7 @@ const SuperAdminDashboard = () => {
           </button>
         </div>
 
-        {/* Table */}
+       
         {renderTabContent()}
       </main>
     </div>

@@ -1,4 +1,4 @@
-// src/App.jsx
+
 
 import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
@@ -36,7 +36,7 @@ export default function App() {
         setAuthData({ token: null, role: null, email: null, name: null });
     };
     
-    // Corrected onUpdateProfile function
+    
     const handleUpdateProfile = (updatedUser) => {
         localStorage.setItem('userName', updatedUser.name);
         localStorage.setItem('userEmail', updatedUser.email);
@@ -54,7 +54,7 @@ export default function App() {
         if (requiredRole && authData.role !== requiredRole) {
             return <Navigate to="/unauthorized" replace />;
         }
-        // Pass the onUpdateProfile function to the children
+        
         return React.cloneElement(children, { authData, onLogout: handleLogout, onUpdateProfile: handleUpdateProfile });
     };
 

@@ -1,4 +1,3 @@
-// src/pages/Login.jsx
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -17,7 +16,7 @@ const Login = ({ onLogin }) => {
         setError('');
 
         try {
-            // ✅ Use axios instance directly (baseURL is already set)
+            
             const response = await axios.post("/api/users/login", { email, password });
 
             const { token, role, email: userEmail, name } = response.data;

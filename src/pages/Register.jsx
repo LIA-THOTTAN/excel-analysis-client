@@ -7,19 +7,19 @@ const Register = () => {
     name: "",
     email: "",
     password: "",
-    role: "user", // Default role
+    role: "user", 
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
-  // 📝 Handle input changes
+ 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 🚀 Handle form submit
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -51,7 +51,7 @@ const Register = () => {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name */}
+          
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
               Full Name
@@ -67,7 +67,7 @@ const Register = () => {
             />
           </div>
 
-          {/* Email */}
+          
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
               Email Address
@@ -83,7 +83,7 @@ const Register = () => {
             />
           </div>
 
-          {/* Password */}
+         
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
               Password
@@ -99,7 +99,7 @@ const Register = () => {
             />
           </div>
 
-          {/* Role */}
+          
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
               Role
@@ -115,7 +115,6 @@ const Register = () => {
             </select>
           </div>
 
-          {/* Submit button */}
           <button
             type="submit"
             disabled={loading}
@@ -125,12 +124,12 @@ const Register = () => {
           </button>
         </form>
 
-        {/* Message */}
+        
         {message && (
           <p className="text-center text-sm mt-4 text-gray-700">{message}</p>
         )}
 
-        {/* Redirect */}
+       
         <p className="text-sm text-center text-gray-600 mt-4">
           Already have an account?{" "}
           <button

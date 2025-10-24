@@ -1,4 +1,4 @@
-// client/src/pages/Dashboard.jsx
+
 import React, { useState, useRef } from "react";
 import * as XLSX from "xlsx";
 import axios from "../axiosConfig";
@@ -29,7 +29,7 @@ export default function Dashboard() {
 
   const chartRef = useRef(null);
 
-  // 📁 Handle file selection
+ 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -63,7 +63,7 @@ export default function Dashboard() {
     reader.readAsBinaryString(file);
   };
 
-  // 🌐 Upload file to backend
+  
   const handleUploadToServer = async () => {
     if (!selectedFile) {
       setMessage("Please select a file to upload.");
@@ -85,7 +85,7 @@ export default function Dashboard() {
       const config = {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`, // ✅ FIXED template literal
+          Authorization: `Bearer ${token}`, 
         },
       };
 
@@ -100,7 +100,7 @@ export default function Dashboard() {
     }
   };
 
-  // 📊 Generate chart data
+  
   const handleGenerateGraph = () => {
     setMessage("");
 
@@ -143,7 +143,7 @@ export default function Dashboard() {
     setGenerated(true);
   };
 
-  // 🖼 Export as PNG
+  
   const handleSavePng = () => {
     if (!chartRef.current) return;
     toPng(chartRef.current, { backgroundColor: "#ffffff" }).then((dataUrl) => {
@@ -199,7 +199,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* 📊 Axis & Chart Type Selectors */}
+        
         {columns.length > 0 && (
           <div className="space-y-4">
             <div>
@@ -262,7 +262,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* 📊 Chart Preview */}
+      
       {generated && chartData.length > 0 && (
         <div className="mt-12 w-full max-w-5xl mx-auto h-[450px] border border-[#30363d] rounded-lg bg-[#161b22] p-4 shadow-lg">
           <h3 className="text-xl font-bold mb-4 text-center">
@@ -333,7 +333,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* 💾 Export Buttons */}
+      
       {generated && chartData.length > 0 && (
         <div className="flex justify-center mt-6 space-x-4">
           <button

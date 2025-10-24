@@ -76,10 +76,10 @@ export default function AdminPage({ authData, onLogout }) {
     } else {
       fetchDashboardData();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [authData, navigate]);
 
-  // ✅ Reject user
+  
   const handleRejectUser = async (userToReject) => {
     if (window.confirm('Are you sure you want to reject this user?')) {
       try {
@@ -110,7 +110,7 @@ export default function AdminPage({ authData, onLogout }) {
     }
   };
 
-  // ✅ Unreject user
+  
   const handleUnrejectUser = async (userToUnreject) => {
     if (window.confirm('Are you sure you want to unreject this user?')) {
       try {

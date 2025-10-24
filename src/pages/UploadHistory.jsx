@@ -8,7 +8,7 @@ const UploadHistory = () => {
   const [previewData, setPreviewData] = useState(null);
   const [previewFileName, setPreviewFileName] = useState("");
 
-  // Fetch history
+  
   useEffect(() => {
     const fetchHistory = async () => {
       try {
@@ -38,7 +38,7 @@ const UploadHistory = () => {
     fetchHistory();
   }, []);
 
-  // Handle preview
+ 
   const handlePreview = async (id, fileName) => {
   try {
     const token = localStorage.getItem("authToken");
@@ -57,7 +57,7 @@ const UploadHistory = () => {
   }
 };
 
-// Handle delete
+
 const handleDelete = async (id) => {
   try {
     const token = localStorage.getItem("authToken");
@@ -137,7 +137,6 @@ const handleDelete = async (id) => {
         </div>
       )}
 
-      {/* Preview Section */}
       {previewData && (
         <div className="mt-6 p-4 bg-[#161b22] rounded-xl shadow-md">
           <div className="flex justify-between items-center mb-4">

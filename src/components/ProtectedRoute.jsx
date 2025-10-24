@@ -1,4 +1,4 @@
-// client/src/components/ProtectedRoute.jsx
+
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
@@ -9,7 +9,7 @@ export default function ProtectedRoute({ adminRequired, superAdminRequired }) {
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken'); // ✅ use authToken everywhere
+    const token = localStorage.getItem('authToken'); 
     if (token) {
       try {
         const decodedToken = jwtDecode(token);
@@ -32,7 +32,7 @@ export default function ProtectedRoute({ adminRequired, superAdminRequired }) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/" />; // Redirect to login
+    return <Navigate to="/" />; 
   }
 
   if (adminRequired && userRole !== 'admin' && userRole !== 'superadmin') {

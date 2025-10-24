@@ -1,4 +1,3 @@
-// src/pages/ProfilePage.jsx
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -24,7 +23,7 @@ const ProfilePage = ({ authData, onLogout }) => {
                     },
                 };
 
-                // ✅ Use axios instance directly
+                
                 const response = await axios.get("/api/users/profile", config);
                 setProfile(response.data);
             } catch (err) {

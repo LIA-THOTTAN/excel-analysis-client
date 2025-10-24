@@ -1,5 +1,3 @@
-// src/pages/HomePage.jsx
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -37,7 +35,7 @@ export default function HomePage() {
             <Header />
             <div className="flex-grow flex items-center justify-center text-center p-8 py-32 mt-16">
                 <div>
-                    {/* Adjusted "Excelvision" heading for a less thick appearance */}
+                    
                     <h1 className="text-6xl md:text-7xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 drop-shadow-lg">
                         Excelvision
                     </h1>
@@ -76,7 +74,7 @@ export default function HomePage() {
                 </div>
             </div>
 
-            {/* "How It Works" Section */}
+            
             <div className="bg-[#0d1117] py-24">
                 <div className="container mx-auto px-4 text-center">
                     <h2 className="text-4xl font-bold mb-12">How It Works</h2>
