@@ -86,7 +86,7 @@ const SuperAdminDashboard = () => {
       await axios.put(`/api/users/reject/${id}`, {}, getAuthHeaders());
       toast.success("Rejected successfully!");
       fetchDashboardData();
-      setActiveTab("rejected"); 
+      setActiveTab("rejected");
     } catch {
       toast.error("Failed to reject");
     }
@@ -97,7 +97,7 @@ const SuperAdminDashboard = () => {
       await axios.put(`/api/users/grant-admin/${id}`, {}, getAuthHeaders());
       toast.success("Granted as Admin!");
       fetchDashboardData();
-      setActiveTab("allAdmins"); 
+      setActiveTab("allAdmins");
     } catch {
       toast.error("Failed to grant admin");
     }
@@ -108,7 +108,7 @@ const SuperAdminDashboard = () => {
       await axios.put(`/api/users/grant-user/${id}`, {}, getAuthHeaders());
       toast.success("Granted as User!");
       fetchDashboardData();
-      setActiveTab("allUsers"); 
+      setActiveTab("allUsers");
     } catch {
       toast.error("Failed to grant user");
     }
@@ -188,7 +188,8 @@ const SuperAdminDashboard = () => {
                     </button>
                   </>
                 )}
-                {(activeTab === "allAdmins" || activeTab === "allUsers") && (
+
+                {activeTab === "allAdmins" && (
                   <button
                     style={btnRed}
                     onClick={() => handleReject(user._id)}
@@ -196,6 +197,24 @@ const SuperAdminDashboard = () => {
                     Reject
                   </button>
                 )}
+
+                {activeTab === "allUsers" && (
+                  <>
+                    <button
+                      style={btnPurple}
+                      onClick={() => handleGrantAdmin(user._id)}
+                    >
+                      Grant Admin
+                    </button>
+                    <button
+                      style={btnRed}
+                      onClick={() => handleReject(user._id)}
+                    >
+                      Reject
+                    </button>
+                  </>
+                )}
+
                 {activeTab === "rejected" && (
                   <>
                     <button
@@ -281,7 +300,6 @@ const SuperAdminDashboard = () => {
         </div>
       </div>
 
-     
       <div
         style={{
           display: "grid",
@@ -300,7 +318,6 @@ const SuperAdminDashboard = () => {
         <StatCard title="Pending" icon={<Clock />} value={stats.pending} />
       </div>
 
-      
       <div
         style={{
           display: "flex",
@@ -336,8 +353,6 @@ const SuperAdminDashboard = () => {
     </div>
   );
 };
-
-
 
 const StatCard = ({ title, icon, value }) => (
   <div
@@ -379,7 +394,6 @@ const TabButton = ({ label, active, onClick }) => (
     {label}
   </button>
 );
-
 
 const thStyle = {
   padding: "10px",
