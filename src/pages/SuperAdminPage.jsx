@@ -92,19 +92,6 @@ const SuperAdminDashboard = () => {
     }
   };
 
-  // ✅ FIXED reject logic for admins/users lists
-  const handleRejectDirect = async (id) => {
-    try {
-      await axios.put(`/api/users/reject/${id}`, {}, getAuthHeaders());
-      toast.success("User moved to rejected list!");
-      fetchDashboardData();
-      setActiveTab("rejected");
-    } catch (err) {
-      toast.error("Failed to reject user");
-      console.error(err);
-    }
-  };
-
   const handleGrantAdmin = async (id) => {
     try {
       await axios.put(`/api/users/grant-admin/${id}`, {}, getAuthHeaders());
@@ -185,7 +172,6 @@ const SuperAdminDashboard = () => {
                   flexWrap: "wrap",
                 }}
               >
-                {/* Pending Requests */}
                 {activeTab === "pending" && (
                   <>
                     <button
@@ -203,17 +189,40 @@ const SuperAdminDashboard = () => {
                   </>
                 )}
 
-                {/* Admins / Users List */}
                 {(activeTab === "allAdmins" || activeTab === "allUsers") && (
                   <button
                     style={btnRed}
-                    onClick={() => handleRejectDirect(user._id)}
+                    onClick={async () => {
+                      try {
+                        // 🔹 if user is admin, revoke admin access first
+                        if (user.role === "admin") {
+                          await axios.put(
+                            `/api/users/revoke-admin/${user._id}`,
+                            {},
+                            getAuthHeaders()
+                          );
+                        }
+
+                        // then mark as rejected
+                        await axios.put(
+                          `/api/users/reject/${user._id}`,
+                          {},
+                          getAuthHeaders()
+                        );
+
+                        toast.success("User moved to rejected list!");
+                        fetchDashboardData();
+                        setActiveTab("rejected");
+                      } catch (err) {
+                        toast.error("Failed to reject user");
+                        console.error(err);
+                      }
+                    }}
                   >
                     Reject
                   </button>
                 )}
 
-                {/* Rejected List */}
                 {activeTab === "rejected" && (
                   <>
                     <button
@@ -299,7 +308,6 @@ const SuperAdminDashboard = () => {
         </div>
       </div>
 
-      {/* Stats */}
       <div
         style={{
           display: "grid",
@@ -309,16 +317,11 @@ const SuperAdminDashboard = () => {
         }}
       >
         <StatCard title="Total Users" icon={<Users />} value={stats.users} />
-        <StatCard
-          title="Super Admins"
-          icon={<Shield />}
-          value={stats.superAdmins}
-        />
+        <StatCard title="Super Admins" icon={<Shield />} value={stats.superAdmins} />
         <StatCard title="Admins" icon={<UserCheck />} value={stats.admins} />
         <StatCard title="Pending" icon={<Clock />} value={stats.pending} />
       </div>
 
-      {/* Tabs with Counts */}
       <div
         style={{
           display: "flex",
@@ -355,7 +358,6 @@ const SuperAdminDashboard = () => {
   );
 };
 
-// ===== Sub Components =====
 const StatCard = ({ title, icon, value }) => (
   <div
     style={{
