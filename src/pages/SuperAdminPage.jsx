@@ -86,7 +86,7 @@ const SuperAdminDashboard = () => {
       await axios.put(`/api/users/reject/${id}`, {}, getAuthHeaders());
       toast.success("Rejected successfully!");
       fetchDashboardData();
-      setActiveTab("rejected");
+      setActiveTab("rejected"); // ✅ Open rejected list after rejection
     } catch {
       toast.error("Failed to reject");
     }
@@ -97,7 +97,7 @@ const SuperAdminDashboard = () => {
       await axios.put(`/api/users/grant-admin/${id}`, {}, getAuthHeaders());
       toast.success("Granted as Admin!");
       fetchDashboardData();
-      setActiveTab("allAdmins");
+      setActiveTab("allAdmins"); // ✅ Open admins list after granting admin
     } catch {
       toast.error("Failed to grant admin");
     }
@@ -108,7 +108,7 @@ const SuperAdminDashboard = () => {
       await axios.put(`/api/users/grant-user/${id}`, {}, getAuthHeaders());
       toast.success("Granted as User!");
       fetchDashboardData();
-      setActiveTab("allUsers");
+      setActiveTab("allUsers"); // ✅ Open users list after granting user
     } catch {
       toast.error("Failed to grant user");
     }
@@ -188,8 +188,7 @@ const SuperAdminDashboard = () => {
                     </button>
                   </>
                 )}
-
-                {activeTab === "allAdmins" && (
+                {(activeTab === "allAdmins" || activeTab === "allUsers") && (
                   <button
                     style={btnRed}
                     onClick={() => handleReject(user._id)}
@@ -197,24 +196,6 @@ const SuperAdminDashboard = () => {
                     Reject
                   </button>
                 )}
-
-                {activeTab === "allUsers" && (
-                  <>
-                    <button
-                      style={btnPurple}
-                      onClick={() => handleGrantAdmin(user._id)}
-                    >
-                      Grant Admin
-                    </button>
-                    <button
-                      style={btnRed}
-                      onClick={() => handleReject(user._id)}
-                    >
-                      Reject
-                    </button>
-                  </>
-                )}
-
                 {activeTab === "rejected" && (
                   <>
                     <button
@@ -300,6 +281,7 @@ const SuperAdminDashboard = () => {
         </div>
       </div>
 
+      {/* Stats */}
       <div
         style={{
           display: "grid",
@@ -318,6 +300,7 @@ const SuperAdminDashboard = () => {
         <StatCard title="Pending" icon={<Clock />} value={stats.pending} />
       </div>
 
+      {/* Tabs with counts */}
       <div
         style={{
           display: "flex",
@@ -353,6 +336,8 @@ const SuperAdminDashboard = () => {
     </div>
   );
 };
+
+// ===== Sub Components =====
 
 const StatCard = ({ title, icon, value }) => (
   <div
@@ -395,6 +380,7 @@ const TabButton = ({ label, active, onClick }) => (
   </button>
 );
 
+// ===== Inline Styles =====
 const thStyle = {
   padding: "10px",
   textAlign: "left",
