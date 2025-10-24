@@ -194,18 +194,9 @@ const SuperAdminDashboard = () => {
                     style={btnRed}
                     onClick={async () => {
                       try {
-
-                        if (user.role === "admin") {
-                          await axios.put(
-                            `/api/users/rejectAdmin/${user._id}`,
-                            {},
-                            getAuthHeaders()
-                          );
-                        }
-
-                       
+                        // 👇 changed from revoke-admin to reject-admin
                         await axios.put(
-                          `/api/users/reject/${user._id}`,
+                          `/api/users/reject-admin/${user._id}`,
                           {},
                           getAuthHeaders()
                         );
