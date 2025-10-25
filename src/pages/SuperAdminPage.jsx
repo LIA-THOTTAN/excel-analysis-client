@@ -18,16 +18,14 @@ const SuperAdminDashboard = () => {
   const [regularUsers, setRegularUsers] = useState([]);
   const [activeTab, setActiveTab] = useState("pending");
   const [userEmail, setUserEmail] = useState("");
-  const [menuOpen, setMenuOpen] = useState(false);
-
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   const navigate = useNavigate();
-  const menuRef = useRef(null);
 
   const getAuthHeaders = () => ({
     headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
   });
 
-  // ✅ Fetch all data
   const fetchDashboardData = async () => {
     try {
       const config = getAuthHeaders();
@@ -75,18 +73,23 @@ const SuperAdminDashboard = () => {
     fetchDashboardData();
   }, []);
 
-  // ✅ Close dropdown when clicked outside
+
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setMenuOpen(false);
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ✅ API handlers
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    toast.success("Logged out successfully!");
+    navigate("/login");
+  };
+
   const handleApprove = async (id) => {
     try {
       await axios.put(`/api/users/approve/${id}`, {}, getAuthHeaders());
@@ -103,7 +106,6 @@ const SuperAdminDashboard = () => {
         role === "admin"
           ? `/api/users/reject-admin/${id}`
           : `/api/users/reject/${id}`;
-
       await axios.put(endpoint, {}, getAuthHeaders());
       toast.success(`${role === "admin" ? "Admin" : "User"} rejected successfully!`);
       fetchDashboardData();
@@ -136,14 +138,8 @@ const SuperAdminDashboard = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
-  };
-
   const formatDate = (date) => (date ? new Date(date).toLocaleString() : "N/A");
 
-  // ✅ Table rendering
   const renderTable = (data) => {
     if (!data.length)
       return (
@@ -197,30 +193,42 @@ const SuperAdminDashboard = () => {
                     <button style={btnGreen} onClick={() => handleApprove(user._id)}>
                       Approve
                     </button>
-                    <button style={btnRed} onClick={() => handleReject(user._id, "admin")}>
+                    <button
+                      style={btnRed}
+                      onClick={() => handleReject(user._id, "admin")}
+                    >
                       Reject
                     </button>
                   </>
                 )}
-
                 {activeTab === "allAdmins" && (
-                  <button style={btnRed} onClick={() => handleReject(user._id, "admin")}>
+                  <button
+                    style={btnRed}
+                    onClick={() => handleReject(user._id, "admin")}
+                  >
                     Reject
                   </button>
                 )}
-
                 {activeTab === "allUsers" && (
-                  <button style={btnRed} onClick={() => handleReject(user._id, "user")}>
+                  <button
+                    style={btnRed}
+                    onClick={() => handleReject(user._id, "user")}
+                  >
                     Reject
                   </button>
                 )}
-
                 {activeTab === "rejected" && (
                   <>
-                    <button style={btnBlue} onClick={() => handleGrantUser(user._id)}>
+                    <button
+                      style={btnBlue}
+                      onClick={() => handleGrantUser(user._id)}
+                    >
                       Grant User
                     </button>
-                    <button style={btnPurple} onClick={() => handleGrantAdmin(user._id)}>
+                    <button
+                      style={btnPurple}
+                      onClick={() => handleGrantAdmin(user._id)}
+                    >
                       Grant Admin
                     </button>
                   </>
@@ -233,7 +241,6 @@ const SuperAdminDashboard = () => {
     );
   };
 
-  // ✅ Tabs switcher
   const renderTab = () => {
     switch (activeTab) {
       case "pending":
@@ -258,30 +265,34 @@ const SuperAdminDashboard = () => {
         padding: "2rem",
       }}
     >
-      {/* Header */}
+     
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           marginBottom: "1rem",
-          alignItems: "center",
+          position: "relative",
         }}
       >
         <h1 style={{ fontSize: "24px", fontWeight: "bold" }}>Super Admin Dashboard</h1>
 
-        {/* Avatar dropdown */}
-        <div ref={menuRef} style={{ position: "relative" }}>
-          <button
-            onClick={() => setMenuOpen((prev) => !prev)}
+        
+        <div
+          ref={dropdownRef}
+          style={{
+            position: "relative",
+            display: "inline-block",
+          }}
+        >
+          <div
+            onClick={() => setDropdownOpen(!dropdownOpen)}
             style={{
               display: "flex",
               alignItems: "center",
               background: "#1f2937",
               padding: "8px 12px",
               borderRadius: "8px",
-              border: "none",
               cursor: "pointer",
-              color: "#fff",
             }}
           >
             <div
@@ -294,35 +305,37 @@ const SuperAdminDashboard = () => {
                 alignItems: "center",
                 justifyContent: "center",
                 marginRight: "10px",
-                fontWeight: "bold",
               }}
             >
               {userEmail.charAt(0).toUpperCase()}
             </div>
             <span>{userEmail}</span>
-          </button>
+          </div>
 
-          {menuOpen && (
+          {dropdownOpen && (
             <div
               style={{
                 position: "absolute",
                 top: "110%",
                 right: 0,
-                background: "#111827",
-                border: "1px solid #374151",
+                background: "#1f2937",
                 borderRadius: "8px",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
-                width: "180px",
-                zIndex: 10,
+                boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
+                padding: "8px 0",
+                minWidth: "160px",
+                zIndex: 100,
               }}
             >
               <button
-                style={menuBtnStyle}
-                onClick={() => toast.info("Profile page coming soon!")}
+                onClick={() => navigate("/profile")}
+                style={dropdownBtn}
               >
                 Profile
               </button>
-              <button style={logoutBtnStyle} onClick={handleLogout}>
+              <button
+                onClick={handleLogout}
+                style={{ ...dropdownBtn, color: "#ef4444" }}
+              >
                 Logout
               </button>
             </div>
@@ -330,7 +343,7 @@ const SuperAdminDashboard = () => {
         </div>
       </div>
 
-      {/* Stats */}
+      
       <div
         style={{
           display: "grid",
@@ -345,7 +358,7 @@ const SuperAdminDashboard = () => {
         <StatCard title="Pending" icon={<Clock />} value={stats.pending} />
       </div>
 
-      {/* Tabs */}
+    
       <div
         style={{
           display: "flex",
@@ -382,7 +395,7 @@ const SuperAdminDashboard = () => {
   );
 };
 
-// ✅ Reusable components
+
 const StatCard = ({ title, icon, value }) => (
   <div
     style={{
@@ -424,7 +437,7 @@ const TabButton = ({ label, active, onClick }) => (
   </button>
 );
 
-// ✅ Styles
+
 const thStyle = {
   padding: "10px",
   textAlign: "left",
@@ -465,21 +478,15 @@ const btnPurple = {
   borderRadius: "6px",
   cursor: "pointer",
 };
-
-const menuBtnStyle = {
-  display: "block",
+const dropdownBtn = {
   width: "100%",
   textAlign: "left",
-  padding: "10px 16px",
-  background: "transparent",
+  padding: "8px 16px",
+  background: "none",
   border: "none",
-  color: "#d1d5db",
+  color: "#e5e7eb",
   cursor: "pointer",
-};
-
-const logoutBtnStyle = {
-  ...menuBtnStyle,
-  color: "#ef4444",
+  fontSize: "14px",
 };
 
 export default SuperAdminDashboard;
