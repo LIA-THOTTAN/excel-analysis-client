@@ -325,13 +325,7 @@ const SuperAdminDashboard = () => {
                 minWidth: "160px",
                 zIndex: 100,
               }}
-            >
-              <button
-                onClick={() => navigate("/profile")}
-                style={dropdownBtn}
-              >
-                Profile
-              </button>
+             >
               <button
                 onClick={handleLogout}
                 style={{ ...dropdownBtn, color: "#ef4444" }}
