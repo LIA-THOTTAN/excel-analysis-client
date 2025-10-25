@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "../axiosConfig";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -18,12 +18,16 @@ const SuperAdminDashboard = () => {
   const [regularUsers, setRegularUsers] = useState([]);
   const [activeTab, setActiveTab] = useState("pending");
   const [userEmail, setUserEmail] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+
   const navigate = useNavigate();
+  const menuRef = useRef(null);
 
   const getAuthHeaders = () => ({
     headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
   });
 
+  // ✅ Fetch all data
   const fetchDashboardData = async () => {
     try {
       const config = getAuthHeaders();
@@ -71,6 +75,18 @@ const SuperAdminDashboard = () => {
     fetchDashboardData();
   }, []);
 
+  // ✅ Close dropdown when clicked outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // ✅ API handlers
   const handleApprove = async (id) => {
     try {
       await axios.put(`/api/users/approve/${id}`, {}, getAuthHeaders());
@@ -81,10 +97,8 @@ const SuperAdminDashboard = () => {
     }
   };
 
-  // ✅ Reject function handles both users and admins properly
   const handleReject = async (id, role) => {
     try {
-      // Different API endpoints for user/admin rejection
       const endpoint =
         role === "admin"
           ? `/api/users/reject-admin/${id}`
@@ -122,8 +136,14 @@ const SuperAdminDashboard = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/login");
+  };
+
   const formatDate = (date) => (date ? new Date(date).toLocaleString() : "N/A");
 
+  // ✅ Table rendering
   const renderTable = (data) => {
     if (!data.length)
       return (
@@ -171,61 +191,36 @@ const SuperAdminDashboard = () => {
               </td>
               <td style={tdStyle}>{formatDate(user.createdAt)}</td>
               <td style={tdStyle}>{formatDate(user.lastLogin)}</td>
-              <td
-                style={{
-                  ...tdStyle,
-                  display: "flex",
-                  gap: "8px",
-                  flexWrap: "wrap",
-                }}
-              >
+              <td style={{ ...tdStyle, display: "flex", gap: "8px", flexWrap: "wrap" }}>
                 {activeTab === "pending" && (
                   <>
-                    <button
-                      style={btnGreen}
-                      onClick={() => handleApprove(user._id)}
-                    >
+                    <button style={btnGreen} onClick={() => handleApprove(user._id)}>
                       Approve
                     </button>
-                    <button
-                      style={btnRed}
-                      onClick={() => handleReject(user._id, "admin")}
-                    >
+                    <button style={btnRed} onClick={() => handleReject(user._id, "admin")}>
                       Reject
                     </button>
                   </>
                 )}
 
                 {activeTab === "allAdmins" && (
-                  <button
-                    style={btnRed}
-                    onClick={() => handleReject(user._id, "admin")}
-                  >
+                  <button style={btnRed} onClick={() => handleReject(user._id, "admin")}>
                     Reject
                   </button>
                 )}
 
                 {activeTab === "allUsers" && (
-                  <button
-                    style={btnRed}
-                    onClick={() => handleReject(user._id, "user")}
-                  >
+                  <button style={btnRed} onClick={() => handleReject(user._id, "user")}>
                     Reject
                   </button>
                 )}
 
                 {activeTab === "rejected" && (
                   <>
-                    <button
-                      style={btnBlue}
-                      onClick={() => handleGrantUser(user._id)}
-                    >
+                    <button style={btnBlue} onClick={() => handleGrantUser(user._id)}>
                       Grant User
                     </button>
-                    <button
-                      style={btnPurple}
-                      onClick={() => handleGrantAdmin(user._id)}
-                    >
+                    <button style={btnPurple} onClick={() => handleGrantAdmin(user._id)}>
                       Grant Admin
                     </button>
                   </>
@@ -238,6 +233,7 @@ const SuperAdminDashboard = () => {
     );
   };
 
+  // ✅ Tabs switcher
   const renderTab = () => {
     switch (activeTab) {
       case "pending":
@@ -268,35 +264,69 @@ const SuperAdminDashboard = () => {
           display: "flex",
           justifyContent: "space-between",
           marginBottom: "1rem",
+          alignItems: "center",
         }}
       >
-        <h1 style={{ fontSize: "24px", fontWeight: "bold" }}>
-          Super Admin Dashboard
-        </h1>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            background: "#1f2937",
-            padding: "8px 12px",
-            borderRadius: "8px",
-          }}
-        >
-          <div
+        <h1 style={{ fontSize: "24px", fontWeight: "bold" }}>Super Admin Dashboard</h1>
+
+        {/* Avatar dropdown */}
+        <div ref={menuRef} style={{ position: "relative" }}>
+          <button
+            onClick={() => setMenuOpen((prev) => !prev)}
             style={{
-              width: "32px",
-              height: "32px",
-              background: "#2563eb",
-              borderRadius: "50%",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              marginRight: "10px",
+              background: "#1f2937",
+              padding: "8px 12px",
+              borderRadius: "8px",
+              border: "none",
+              cursor: "pointer",
+              color: "#fff",
             }}
           >
-            {userEmail.charAt(0).toUpperCase()}
-          </div>
-          <span>{userEmail}</span>
+            <div
+              style={{
+                width: "32px",
+                height: "32px",
+                background: "#2563eb",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginRight: "10px",
+                fontWeight: "bold",
+              }}
+            >
+              {userEmail.charAt(0).toUpperCase()}
+            </div>
+            <span>{userEmail}</span>
+          </button>
+
+          {menuOpen && (
+            <div
+              style={{
+                position: "absolute",
+                top: "110%",
+                right: 0,
+                background: "#111827",
+                border: "1px solid #374151",
+                borderRadius: "8px",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+                width: "180px",
+                zIndex: 10,
+              }}
+            >
+              <button
+                style={menuBtnStyle}
+                onClick={() => toast.info("Profile page coming soon!")}
+              >
+                Profile
+              </button>
+              <button style={logoutBtnStyle} onClick={handleLogout}>
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -352,6 +382,7 @@ const SuperAdminDashboard = () => {
   );
 };
 
+// ✅ Reusable components
 const StatCard = ({ title, icon, value }) => (
   <div
     style={{
@@ -393,6 +424,7 @@ const TabButton = ({ label, active, onClick }) => (
   </button>
 );
 
+// ✅ Styles
 const thStyle = {
   padding: "10px",
   textAlign: "left",
@@ -432,6 +464,22 @@ const btnPurple = {
   border: "none",
   borderRadius: "6px",
   cursor: "pointer",
+};
+
+const menuBtnStyle = {
+  display: "block",
+  width: "100%",
+  textAlign: "left",
+  padding: "10px 16px",
+  background: "transparent",
+  border: "none",
+  color: "#d1d5db",
+  cursor: "pointer",
+};
+
+const logoutBtnStyle = {
+  ...menuBtnStyle,
+  color: "#ef4444",
 };
 
 export default SuperAdminDashboard;
