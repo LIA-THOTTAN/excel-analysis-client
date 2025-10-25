@@ -19,7 +19,6 @@ const UploadHistory = () => {
         }
 
         const API = import.meta.env.VITE_API_BASE_URL;
-
         const { data } = await axios.get(`${API}/api/users/uploads`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -39,6 +38,7 @@ const UploadHistory = () => {
 
   const handlePreview = async (id, fileName) => {
     try {
+      setError(null);
       const token = localStorage.getItem("authToken");
       const API = import.meta.env.VITE_API_BASE_URL;
 
@@ -50,10 +50,19 @@ const UploadHistory = () => {
           },
         }
       );
-      setPreviewData(data.data);
-      setPreviewFileName(fileName);
+
+      // ✅ Check if backend returns valid preview data
+      if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
+        setPreviewData(data.data);
+        setPreviewFileName(fileName);
+      } else {
+        setError("No preview data available for this file.");
+        setPreviewData(null);
+      }
     } catch (err) {
+      console.error("Preview Error:", err);
       setError("Failed to preview file");
+      setPreviewData(null);
     }
   };
 
@@ -80,7 +89,7 @@ const UploadHistory = () => {
   };
 
   if (loading) return <p className="text-gray-400">Loading history...</p>;
-  if (error) return <p className="text-red-500">{error}</p>;
+  if (error && !previewData) return <p className="text-red-500">{error}</p>;
 
   return (
     <div className="p-6 bg-[#0d1117] text-[#c9d1d9] rounded-2xl shadow-lg">
@@ -143,7 +152,7 @@ const UploadHistory = () => {
       )}
 
       {previewData && (
-        <div className="mt-6 p-4 bg-[#161b22] rounded-xl shadow-md">
+        <div className="mt-6 p-4 bg-[#161b22] rounded-xl shadow-md overflow-x-auto">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold text-white">
               Preview: {previewFileName}
@@ -158,11 +167,12 @@ const UploadHistory = () => {
               Close Preview
             </button>
           </div>
-          <div className="overflow-x-auto">
+
+          {previewData.length > 0 ? (
             <table className="min-w-full divide-y divide-[#21262d]">
               <thead className="bg-[#0d1117]">
                 <tr>
-                  {Object.keys(previewData[0] || {}).map((key) => (
+                  {Object.keys(previewData[0]).map((key) => (
                     <th
                       key={key}
                       className="px-4 py-2 text-left text-xs font-medium text-[#8b949e] uppercase"
@@ -176,10 +186,7 @@ const UploadHistory = () => {
                 {previewData.map((row, idx) => (
                   <tr key={idx}>
                     {Object.values(row).map((val, i) => (
-                      <td
-                        key={i}
-                        className="px-4 py-2 whitespace-nowrap text-sm"
-                      >
+                      <td key={i} className="px-4 py-2 text-sm">
                         {val !== undefined ? val.toString() : ""}
                       </td>
                     ))}
@@ -187,7 +194,9 @@ const UploadHistory = () => {
                 ))}
               </tbody>
             </table>
-          </div>
+          ) : (
+            <p className="text-gray-400">No data to display</p>
+          )}
         </div>
       )}
     </div>
