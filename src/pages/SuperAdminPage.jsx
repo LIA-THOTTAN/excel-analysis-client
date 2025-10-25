@@ -81,14 +81,22 @@ const SuperAdminDashboard = () => {
     }
   };
 
-  const handleReject = async (id) => {
+  // ✅ Reject function handles both users and admins properly
+  const handleReject = async (id, role) => {
     try {
-      await axios.put(`/api/users/reject/${id}`, {}, getAuthHeaders());
-      toast.success("Rejected successfully!");
+      // Different API endpoints for user/admin rejection
+      const endpoint =
+        role === "admin"
+          ? `/api/users/reject-admin/${id}`
+          : `/api/users/reject/${id}`;
+
+      await axios.put(endpoint, {}, getAuthHeaders());
+      toast.success(`${role === "admin" ? "Admin" : "User"} rejected successfully!`);
       fetchDashboardData();
       setActiveTab("rejected");
-    } catch {
+    } catch (err) {
       toast.error("Failed to reject");
+      console.error(err);
     }
   };
 
@@ -114,8 +122,7 @@ const SuperAdminDashboard = () => {
     }
   };
 
-  const formatDate = (date) =>
-    date ? new Date(date).toLocaleString() : "N/A";
+  const formatDate = (date) => (date ? new Date(date).toLocaleString() : "N/A");
 
   const renderTable = (data) => {
     if (!data.length)
@@ -182,33 +189,26 @@ const SuperAdminDashboard = () => {
                     </button>
                     <button
                       style={btnRed}
-                      onClick={() => handleReject(user._id)}
+                      onClick={() => handleReject(user._id, "admin")}
                     >
                       Reject
                     </button>
                   </>
                 )}
 
-                {(activeTab === "allAdmins" || activeTab === "allUsers") && (
+                {activeTab === "allAdmins" && (
                   <button
                     style={btnRed}
-                    onClick={async () => {
-                      try {
+                    onClick={() => handleReject(user._id, "admin")}
+                  >
+                    Reject
+                  </button>
+                )}
 
-                        await axios.put(
-                          `/api/users/revoke-admin/${user._id}`,
-                          {},
-                          getAuthHeaders()
-                        );
-
-                        toast.success("User moved to rejected list!");
-                        fetchDashboardData();
-                        setActiveTab("rejected");
-                      } catch (err) {
-                        toast.error("Failed to reject user");
-                        console.error(err);
-                      }
-                    }}
+                {activeTab === "allUsers" && (
+                  <button
+                    style={btnRed}
+                    onClick={() => handleReject(user._id, "user")}
                   >
                     Reject
                   </button>
@@ -262,6 +262,7 @@ const SuperAdminDashboard = () => {
         padding: "2rem",
       }}
     >
+      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -299,6 +300,7 @@ const SuperAdminDashboard = () => {
         </div>
       </div>
 
+      {/* Stats */}
       <div
         style={{
           display: "grid",
@@ -313,6 +315,7 @@ const SuperAdminDashboard = () => {
         <StatCard title="Pending" icon={<Clock />} value={stats.pending} />
       </div>
 
+      {/* Tabs */}
       <div
         style={{
           display: "flex",
